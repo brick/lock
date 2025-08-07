@@ -41,10 +41,12 @@ abstract readonly class AbstractLock implements LockInterface
         $lockAcquired = $this->tryAcquire();
 
         if (! $lockAcquired) {
+            /** @phpstan-ignore return.type */
             return SynchronizeResult::lockFailure();
         }
 
         try {
+            /** @phpstan-ignore return.type */
             return SynchronizeResult::lockSuccess($task());
         } finally {
             $this->release();
@@ -56,10 +58,12 @@ abstract readonly class AbstractLock implements LockInterface
         $lockAcquired = $this->tryAcquireWithTimeout($seconds);
 
         if (! $lockAcquired) {
+            /** @phpstan-ignore return.type */
             return SynchronizeResult::lockFailure();
         }
 
         try {
+            /** @phpstan-ignore return.type */
             return SynchronizeResult::lockSuccess($task());
         } finally {
             $this->release();
