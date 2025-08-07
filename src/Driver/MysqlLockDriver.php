@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Brick\Lock\Driver;
 
+use Brick\Lock\Database\ConnectionInterface;
 use Brick\Lock\LockDriverInterface;
 use Brick\Lock\LockException;
-use Doctrine\DBAL;
 
 /**
  * MySQL driver using GET_LOCK().
@@ -16,7 +16,7 @@ use Doctrine\DBAL;
 final readonly class MysqlLockDriver implements LockDriverInterface
 {
     public function __construct(
-        private DBAL\Connection $connection,
+        private ConnectionInterface $connection,
     ) {
     }
 
@@ -42,18 +42,7 @@ final readonly class MysqlLockDriver implements LockDriverInterface
     public function release(string $lockName): void
     {
         $hashedName = $this->hashLockName($lockName);
-
-        try {
-            $statement = $this->connection->prepare('SELECT RELEASE_LOCK(?)');
-            $statement->bindValue(1, $hashedName);
-
-            $result = $statement->executeQuery()->fetchOne();
-        } catch (DBAL\Exception $e) {
-            throw new LockException(sprintf(
-                'An error occurred while executing RELEASE_LOCK(): %s',
-                $e->getMessage(),
-            ), 0, $e);
-        }
+        $result = $this->connection->querySingleValue('SELECT RELEASE_LOCK(?)', [$hashedName]);
 
         if ($result === 1 || $result === '1') {
             return; // lock was released successfully
@@ -82,19 +71,7 @@ final readonly class MysqlLockDriver implements LockDriverInterface
     private function doAcquire(string $lockName, int $timeoutSeconds): bool
     {
         $hashedName = $this->hashLockName($lockName);
-
-        try {
-            $statement = $this->connection->prepare('SELECT GET_LOCK(?, ?)');
-            $statement->bindValue(1, $hashedName);
-            $statement->bindValue(2, $timeoutSeconds);
-
-            $result = $statement->executeQuery()->fetchOne();
-        } catch (DBAL\Exception $e) {
-            throw new LockException(sprintf(
-                'An error occurred while executing GET_LOCK(): %s',
-                $e->getMessage(),
-            ), 0, $e);
-        }
+        $result = $this->connection->querySingleValue('SELECT GET_LOCK(?, ?)', [$hashedName, $timeoutSeconds]);
 
         return match ($result) {
             0, '0' => false,

@@ -12,6 +12,7 @@
         "php": "^8.2"
     },
     "require-dev": {
+        "ext-pdo": "*",
         "doctrine/dbal": "4.*",
         "phpstan/phpstan": "2.1.22"
     },
