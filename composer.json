@@ -1,0 +1,19 @@
+{
+    "name": "brick/lock",
+    "description": "Advisory locks library",
+    "type": "library",
+    "keywords": [
+        "Brick",
+        "Lock",
+        "Mutex"
+    ],
+    "license": "MIT",
+    "require": {
+        "php": "^8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Brick\\Lock\\": "src/"
+        }
+    }
+}
