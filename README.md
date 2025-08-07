@@ -25,3 +25,26 @@ This library requires PHP 8.2 or later.
 ### Overview
 
 To be written.
+
+### Use in a Symfony project
+
+In a Symfony project using the Doctrine ORM, add the following config, typically in `config/services.yaml`:
+
+```yaml
+services:
+    Brick\Lock\LockFactoryInterface:
+        class: Brick\Lock\LockFactory
+
+    Brick\Lock\LockDriverInterface:
+        # choose the driver that corresponds to your database:
+        class: Brick\Lock\Driver\MysqlLockDriver
+        # class: Brick\Lock\Driver\PostgresLockDriver
+
+    Brick\Lock\Database\ConnectionInterface:
+        # choose the connection you want to use; in a typical Symfony project
+        # with the Doctrine ORM, you'll probably want to use DoctrineConnection:
+        class: Brick\Lock\Database\Connection\DoctrineConnection
+        # class: Brick\Lock\Database\Connection\PdoConnection
+```
+
+You can now type-hint the `Brick\Lock\LockFactoryInterface` service in your code and use it to create locks.
