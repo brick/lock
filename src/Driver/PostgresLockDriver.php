@@ -34,24 +34,16 @@ final readonly class PostgresLockDriver implements LockDriverInterface
 
     public function tryAcquire(string $lockName): bool
     {
-        $result = $this->connection->querySingleValue('SELECT pg_try_advisory_lock(?, ?)', $this->hashLockName($lockName));
-
-        if (is_bool($result)) {
-            return $result;
-        }
-
-        throw new LockException(sprintf(
-            'Unexpected result from pg_try_advisory_lock(): %s',
-            var_export($result, true),
-        ));
+        return $this->doTryAcquire($this->hashLockName($lockName));
     }
 
     public function tryAcquireWithTimeout(string $lockName, int $timeoutSeconds): bool
     {
         $startTime = microtime(true);
+        $lockHash = $this->hashLockName($lockName);
 
         while (true) {
-            $result = $this->tryAcquire($lockName);
+            $result = $this->doTryAcquire($lockHash);
 
             if ($result === true) {
                 return true;
@@ -79,6 +71,23 @@ final readonly class PostgresLockDriver implements LockDriverInterface
 
         throw new LockException(sprintf(
             'Unexpected result from pg_advisory_unlock(): %s',
+            var_export($result, true),
+        ));
+    }
+
+    /**
+     * @param array{int, int} $lockHash
+     */
+    private function doTryAcquire(array $lockHash): bool
+    {
+        $result = $this->connection->querySingleValue('SELECT pg_try_advisory_lock(?, ?)', $lockHash);
+
+        if (is_bool($result)) {
+            return $result;
+        }
+
+        throw new LockException(sprintf(
+            'Unexpected result from pg_try_advisory_lock(): %s',
             var_export($result, true),
         ));
     }
