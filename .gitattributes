@@ -1,5 +1,8 @@
-.editorconfig    export-ignore
-.gitattributes   export-ignore
-.github          export-ignore
-.gitignore       export-ignore
-phpstan.neon     export-ignore
+.docker               export-ignore
+.editorconfig         export-ignore
+.gitattributes        export-ignore
+.github               export-ignore
+.gitignore            export-ignore
+phpstan.neon          export-ignore
+phpunit.xml           export-ignore
+phpunit-bootstrap.php export-ignore
