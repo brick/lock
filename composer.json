@@ -14,7 +14,9 @@
     "require-dev": {
         "ext-pdo": "*",
         "doctrine/dbal": "4.*",
-        "phpstan/phpstan": "2.1.22"
+        "phpstan/phpstan": "2.1.22",
+        "phpunit/phpunit": "^11.5",
+        "symfony/process": "^7.3"
     },
     "conflict": {
         "doctrine/dbal": "<4.0 || >=5.0"
@@ -22,6 +24,11 @@
     "autoload": {
         "psr-4": {
             "Brick\\Lock\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Brick\\Lock\\Tests\\": "tests/"
         }
     }
 }
