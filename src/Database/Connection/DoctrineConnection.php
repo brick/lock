@@ -8,6 +8,7 @@ use Brick\Lock\Database\ConnectionInterface;
 use Brick\Lock\Database\QueryException;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
+use Override;
 
 /**
  * Wraps a Doctrine DBAL connection.
@@ -19,6 +20,7 @@ final readonly class DoctrineConnection implements ConnectionInterface
     ) {
     }
 
+    #[Override]
     public function querySingleValue(string $sql, array $params = []): mixed
     {
         try {

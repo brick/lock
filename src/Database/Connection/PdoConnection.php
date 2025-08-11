@@ -6,6 +6,7 @@ namespace Brick\Lock\Database\Connection;
 
 use Brick\Lock\Database\ConnectionInterface;
 use Brick\Lock\Database\QueryException;
+use Override;
 use PDO;
 use PDOException;
 
@@ -19,6 +20,7 @@ final readonly class PdoConnection implements ConnectionInterface
     ) {
     }
 
+    #[Override]
     public function querySingleValue(string $sql, array $params = []): mixed
     {
         /** @phpstan-ignore missingType.checkedException */

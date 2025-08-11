@@ -9,6 +9,7 @@ use Brick\Lock\Database\QueryException;
 use Brick\Lock\Exception\LockAcquireException;
 use Brick\Lock\Exception\LockReleaseException;
 use Brick\Lock\LockDriverInterface;
+use Override;
 
 /**
  * PostgreSQL driver using pg_advisory_lock().
@@ -29,6 +30,7 @@ final readonly class PostgresLockDriver implements LockDriverInterface
     ) {
     }
 
+    #[Override]
     public function acquire(string $lockName): void
     {
         try {
@@ -38,11 +40,13 @@ final readonly class PostgresLockDriver implements LockDriverInterface
         }
     }
 
+    #[Override]
     public function tryAcquire(string $lockName): bool
     {
         return $this->doTryAcquire($lockName, $this->hashLockName($lockName));
     }
 
+    #[Override]
     public function tryAcquireWithTimeout(string $lockName, int $timeoutSeconds): bool
     {
         $startTime = microtime(true);
@@ -63,6 +67,7 @@ final readonly class PostgresLockDriver implements LockDriverInterface
         }
     }
 
+    #[Override]
     public function release(string $lockName): void
     {
         try {

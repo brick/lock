@@ -9,6 +9,7 @@ use Brick\Lock\Database\QueryException;
 use Brick\Lock\Exception\LockAcquireException;
 use Brick\Lock\Exception\LockReleaseException;
 use Brick\Lock\LockDriverInterface;
+use Override;
 
 /**
  * MySQL driver using GET_LOCK().
@@ -22,6 +23,7 @@ final readonly class MysqlLockDriver implements LockDriverInterface
     ) {
     }
 
+    #[Override]
     public function acquire(string $lockName): void
     {
         $lockAcquired = $this->doAcquire($lockName, timeoutSeconds: -1);
@@ -31,16 +33,19 @@ final readonly class MysqlLockDriver implements LockDriverInterface
         }
     }
 
+    #[Override]
     public function tryAcquire(string $lockName): bool
     {
         return $this->doAcquire($lockName, timeoutSeconds: 0);
     }
 
+    #[Override]
     public function tryAcquireWithTimeout(string $lockName, int $timeoutSeconds): bool
     {
         return $this->doAcquire($lockName, $timeoutSeconds);
     }
 
+    #[Override]
     public function release(string $lockName): void
     {
         $hashedName = $this->hashLockName($lockName);

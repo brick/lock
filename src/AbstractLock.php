@@ -8,9 +8,11 @@ use Brick\Lock\Exception\LockAcquireException;
 use Brick\Lock\Exception\LockReleaseException;
 use Brick\Lock\Exception\LockWaitException;
 use Closure;
+use Override;
 
 abstract readonly class AbstractLock implements LockInterface
 {
+    #[Override]
     public function wait(): void
     {
         try {
@@ -21,6 +23,7 @@ abstract readonly class AbstractLock implements LockInterface
         }
     }
 
+    #[Override]
     public function tryWaitWithTimeout(int $seconds): bool
     {
         try {
@@ -36,6 +39,7 @@ abstract readonly class AbstractLock implements LockInterface
         return false;
     }
 
+    #[Override]
     public function synchronize(Closure $task): mixed
     {
         $this->acquire();
@@ -47,6 +51,7 @@ abstract readonly class AbstractLock implements LockInterface
         }
     }
 
+    #[Override]
     public function trySynchronize(Closure $task): ?SynchronizeSuccess
     {
         $lockAcquired = $this->tryAcquire();
@@ -62,6 +67,7 @@ abstract readonly class AbstractLock implements LockInterface
         }
     }
 
+    #[Override]
     public function trySynchronizeWithTimeout(int $seconds, Closure $task): ?SynchronizeSuccess
     {
         $lockAcquired = $this->tryAcquireWithTimeout($seconds);

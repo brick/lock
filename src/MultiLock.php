@@ -7,6 +7,7 @@ namespace Brick\Lock;
 use Brick\Lock\Exception\LockAcquireException;
 use Brick\Lock\Exception\LockReleaseException;
 use InvalidArgumentException;
+use Override;
 
 final readonly class MultiLock extends AbstractLock
 {
@@ -27,6 +28,7 @@ final readonly class MultiLock extends AbstractLock
         $this->lockNames = $lockNames;
     }
 
+    #[Override]
     public function acquire(): void
     {
         foreach ($this->lockNames as $lockName) {
@@ -34,6 +36,7 @@ final readonly class MultiLock extends AbstractLock
         }
     }
 
+    #[Override]
     public function tryAcquire(): bool
     {
         $acquiredLockNames = [];
@@ -57,6 +60,7 @@ final readonly class MultiLock extends AbstractLock
         return true;
     }
 
+    #[Override]
     public function tryAcquireWithTimeout(int $seconds): bool
     {
         if ($seconds <= 0) {
@@ -92,6 +96,7 @@ final readonly class MultiLock extends AbstractLock
         return true;
     }
 
+    #[Override]
     public function release(): void
     {
         foreach ($this->lockNames as $lockName) {
