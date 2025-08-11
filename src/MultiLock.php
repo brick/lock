@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Brick\Lock;
 
+use Brick\Lock\Exception\LockAcquireException;
+use Brick\Lock\Exception\LockReleaseException;
+use InvalidArgumentException;
+
 final readonly class MultiLock extends AbstractLock
 {
     /**
@@ -38,8 +42,15 @@ final readonly class MultiLock extends AbstractLock
             if ($this->store->tryAcquire($lockName)) {
                 $acquiredLockNames[] = $lockName;
             } else {
-                foreach ($acquiredLockNames as $acquiredLockName) {
-                    $this->store->release($acquiredLockName);
+                try {
+                    foreach ($acquiredLockNames as $acquiredLockName) {
+                        $this->store->release($acquiredLockName);
+                    }
+                } catch (LockReleaseException $e) {
+                    throw LockAcquireException::forMultiLock(
+                        sprintf('Failed to release previously acquired lock: %s', $e->getMessage()),
+                        $e,
+                    );
                 }
 
                 return false;
@@ -52,7 +63,7 @@ final readonly class MultiLock extends AbstractLock
     public function tryAcquireWithTimeout(int $seconds): bool
     {
         if ($seconds <= 0) {
-            throw new LockException('Timeout must be a positive integer.');
+            throw new InvalidArgumentException('Timeout must be a positive integer.');
         }
 
         $acquiredLockNames = [];
@@ -69,8 +80,15 @@ final readonly class MultiLock extends AbstractLock
             if ($lockAcquired) {
                 $acquiredLockNames[] = $lockName;
             } else {
-                foreach ($acquiredLockNames as $acquiredLockName) {
-                    $this->store->release($acquiredLockName);
+                try {
+                    foreach ($acquiredLockNames as $acquiredLockName) {
+                        $this->store->release($acquiredLockName);
+                    }
+                } catch (LockReleaseException $e) {
+                    throw LockAcquireException::forMultiLock(
+                        sprintf('Failed to release previously acquired lock: %s', $e->getMessage()),
+                        $e,
+                    );
                 }
 
                 return false;

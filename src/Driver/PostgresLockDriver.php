@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Brick\Lock\Driver;
 
 use Brick\Lock\Database\ConnectionInterface;
+use Brick\Lock\Database\QueryException;
+use Brick\Lock\Exception\LockAcquireException;
+use Brick\Lock\Exception\LockReleaseException;
 use Brick\Lock\LockDriverInterface;
-use Brick\Lock\LockException;
 
 /**
  * PostgreSQL driver using pg_advisory_lock().
@@ -29,12 +31,16 @@ final readonly class PostgresLockDriver implements LockDriverInterface
 
     public function acquire(string $lockName): void
     {
-        $this->connection->querySingleValue('SELECT pg_advisory_lock(?, ?)', $this->hashLockName($lockName));
+        try {
+            $this->connection->querySingleValue('SELECT pg_advisory_lock(?, ?)', $this->hashLockName($lockName));
+        } catch (QueryException $e) {
+            throw LockAcquireException::forLockName($lockName, sprintf('Error while calling pg_advisory_lock(): %s', $e->getMessage()), $e);
+        }
     }
 
     public function tryAcquire(string $lockName): bool
     {
-        return $this->doTryAcquire($this->hashLockName($lockName));
+        return $this->doTryAcquire($lockName, $this->hashLockName($lockName));
     }
 
     public function tryAcquireWithTimeout(string $lockName, int $timeoutSeconds): bool
@@ -43,7 +49,7 @@ final readonly class PostgresLockDriver implements LockDriverInterface
         $lockHash = $this->hashLockName($lockName);
 
         while (true) {
-            $result = $this->doTryAcquire($lockHash);
+            $result = $this->doTryAcquire($lockName, $lockHash);
 
             if ($result === true) {
                 return true;
@@ -59,17 +65,21 @@ final readonly class PostgresLockDriver implements LockDriverInterface
 
     public function release(string $lockName): void
     {
-        $result = $this->connection->querySingleValue('SELECT pg_advisory_unlock(?, ?)', $this->hashLockName($lockName));
+        try {
+            $result = $this->connection->querySingleValue('SELECT pg_advisory_unlock(?, ?)', $this->hashLockName($lockName));
+        } catch (QueryException $e) {
+            throw LockReleaseException::forLockName($lockName, sprintf('Error while calling pg_advisory_unlock(): %s', $e->getMessage()), $e);
+        }
 
         if ($result === true) {
             return;
         }
 
         if ($result === false) {
-            throw new LockException(sprintf('Cannot release non-acquired lock with name "%s".', $lockName));
+            throw LockReleaseException::forLockName($lockName, 'The lock was not acquired.');
         }
 
-        throw new LockException(sprintf(
+        throw LockReleaseException::forLockName($lockName, sprintf(
             'Unexpected result from pg_advisory_unlock(): %s',
             var_export($result, true),
         ));
@@ -77,16 +87,22 @@ final readonly class PostgresLockDriver implements LockDriverInterface
 
     /**
      * @param array{int, int} $lockHash
+     *
+     * @throws LockAcquireException
      */
-    private function doTryAcquire(array $lockHash): bool
+    private function doTryAcquire(string $lockName, array $lockHash): bool
     {
-        $result = $this->connection->querySingleValue('SELECT pg_try_advisory_lock(?, ?)', $lockHash);
+        try {
+            $result = $this->connection->querySingleValue('SELECT pg_try_advisory_lock(?, ?)', $lockHash);
+        } catch (QueryException $e) {
+            throw LockAcquireException::forLockName($lockName, sprintf('Error while calling pg_try_advisory_lock(): %s', $e->getMessage()), $e);
+        }
 
         if (is_bool($result)) {
             return $result;
         }
 
-        throw new LockException(sprintf(
+        throw LockAcquireException::forLockName($lockName, sprintf(
             'Unexpected result from pg_try_advisory_lock(): %s',
             var_export($result, true),
         ));

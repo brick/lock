@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Brick\Lock\Database;
 
-use Brick\Lock\LockException;
-
 interface ConnectionInterface
 {
     /**
@@ -15,7 +13,7 @@ interface ConnectionInterface
      *
      * @return scalar|null
      *
-     * @throws LockException If the query fails or does not return exactly one row and one column.
+     * @throws QueryException If the query fails or does not return exactly one row and one column.
      */
     public function querySingleValue(string $sql, array $params = []): mixed;
 }

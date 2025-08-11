@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Brick\Lock;
 
+use Brick\Lock\Exception\LockAcquireException;
+use Brick\Lock\Exception\LockReleaseException;
+use Brick\Lock\Exception\LockWaitException;
 use Closure;
 
 interface LockInterface
@@ -11,8 +14,8 @@ interface LockInterface
     /**
      * Acquires the lock, blocking until it is available.
      *
-     * @throws LockException If the lock cannot be acquired due to an error. Whether the lock is held after an error is
-     *                       undefined.
+     * @throws LockAcquireException If the lock cannot be acquired due to an error. The state of the lock is undefined
+     *                              after such an exception.
      */
     public function acquire(): void;
 
@@ -22,10 +25,10 @@ interface LockInterface
      * If the lock can be acquired immediately, this method returns true and the lock is held.
      * If the lock is currently held by another process, this method returns false and does not hold the lock.
      *
-     * @return bool True if the lock was acquired, false if the lock was not acquired.
+     * @return bool True if the lock was acquired, false if the lock is currently held by another process.
      *
-     * @throws LockException If the lock cannot be acquired due to an error. Whether the lock is held after an error is
-     *                       undefined.
+     * @throws LockAcquireException If the lock cannot be acquired due to an error. The state of the lock is undefined
+     *                              after such an exception.
      */
     public function tryAcquire(): bool;
 
@@ -39,16 +42,16 @@ interface LockInterface
      *
      * @return bool True if the lock was acquired, false if the timeout expired before the lock became available.
      *
-     * @throws LockException If the lock cannot be acquired due to an error. Whether the lock is held after an error is
-     *                       undefined.
+     * @throws LockAcquireException If the lock cannot be acquired due to an error. The state of the lock is undefined
+     *                              after such an exception.
      */
     public function tryAcquireWithTimeout(int $seconds): bool;
 
     /**
      * Releases the lock.
      *
-     * @throws LockException If an error occurs while releasing the lock. Whether the lock is still held after an error
-     *                       is undefined.
+     * @throws LockReleaseException If the lock cannot be released due to an error. The state of the lock is undefined
+     *                              after such an exception.
      */
     public function release(): void;
 
@@ -58,8 +61,8 @@ interface LockInterface
      * This can be used after an unsuccessful tryAcquire() attempt, to wait for the result of the same operation
      * performed by another process.
      *
-     * @throws LockException If an error occurs while waiting for the lock. Whether the lock is held after an error is
-     *                       undefined.
+     * @throws LockWaitException If an error occurs while waiting for the lock. The state of the lock is undefined
+     *                           after such an exception.
      */
     public function wait(): void;
 
@@ -71,6 +74,9 @@ interface LockInterface
      * @param int $seconds The timeout in seconds.
      *
      * @return bool True if the lock was available, false if the timeout expired before the lock became available.
+     *
+     * @throws LockWaitException If an error occurs while waiting for the lock. The state of the lock is undefined
+     *                           after such an exception.
      */
     public function tryWaitWithTimeout(int $seconds): bool;
 
@@ -89,8 +95,10 @@ interface LockInterface
      *
      * @return T The return value of the closure.
      *
-     * @throws LockException If the lock cannot be acquired or released due to an error. Whether the lock is held after
-     *                       an error is undefined.
+     * @throws LockAcquireException If the lock cannot be acquired due to an error. The closure was not executed, the
+     *                              state of the lock is undefined.
+     * @throws LockReleaseException If the lock cannot be released due to an error. The closure was executed
+     *                              (successfully or not), the state of the lock is undefined.
      */
     public function synchronize(Closure $task): mixed;
 
@@ -110,8 +118,10 @@ interface LockInterface
      * @return SynchronizeSuccess<T>|null The return value of the closure wrapped in a SynchronizeSuccess object,
      *                                    or null if the lock could not be acquired.
      *
-     * @throws LockException If the lock cannot be acquired or released due to an error. Whether the lock is held after
-     *                       an error is undefined.
+     * @throws LockAcquireException If the lock cannot be acquired due to an error. The closure was not executed, the
+     *                              state of the lock is undefined.
+     * @throws LockReleaseException If the lock cannot be released due to an error. The closure was executed
+     *                              (successfully or not), the state of the lock is undefined.
      */
     public function trySynchronize(Closure $task): ?SynchronizeSuccess;
 
@@ -131,8 +141,10 @@ interface LockInterface
      * @return SynchronizeSuccess<T>|null The return value of the closure wrapped in a SynchronizeSuccess object,
      *                                     or null if the lock could not be acquired.
      *
-     * @throws LockException If the lock cannot be acquired or released due to an error. Whether the lock is held after
-     *                       an error is undefined.
+     * @throws LockAcquireException If the lock cannot be acquired due to an error. The closure was not executed, the
+     *                              state of the lock is undefined.
+     * @throws LockReleaseException If the lock cannot be released due to an error. The closure was executed
+     *                              (successfully or not), the state of the lock is undefined.
      */
     public function trySynchronizeWithTimeout(int $seconds, Closure $task): ?SynchronizeSuccess;
 }

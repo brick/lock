@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Brick\Lock;
 
+use InvalidArgumentException;
+
 final readonly class Lock extends AbstractLock
 {
     public function __construct(
@@ -25,7 +27,7 @@ final readonly class Lock extends AbstractLock
     public function tryAcquireWithTimeout(int $seconds): bool
     {
         if ($seconds <= 0) {
-            throw new LockException('Timeout must be a positive integer.');
+            throw new InvalidArgumentException('Timeout must be a positive integer.');
         }
 
         return $this->driver->tryAcquireWithTimeout($this->lockName, $seconds);

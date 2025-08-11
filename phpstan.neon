@@ -5,3 +5,8 @@ parameters:
         - src
     excludePaths:
         - vendor
+    exceptions:
+        check:
+            missingCheckedExceptionInThrows: true
+        uncheckedExceptionClasses:
+            - InvalidArgumentException

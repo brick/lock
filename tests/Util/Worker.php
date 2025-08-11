@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Brick\Lock\Tests\Util;
 
-use Brick\Lock\LockException;
+use Brick\Lock\Exception\LockAcquireException;
 use Brick\Lock\LockFactory;
 use Brick\Lock\LockInterface;
 use Closure;
@@ -166,7 +166,7 @@ class Worker
             $isLockSuccess = $synchronizeSuccess !== null;
         } catch (Exception $e) {
             $exception = $e;
-            $isLockSuccess = ! $e instanceof LockException;
+            $isLockSuccess = ! $e instanceof LockAcquireException;
         }
 
         $this->writeSyncResult($isLockSuccess, $returnValue, $exception?->getMessage());
@@ -188,7 +188,7 @@ class Worker
             $isLockSuccess = $synchronizeSuccess !== null;
         } catch (Exception $e) {
             $exception = $e;
-            $isLockSuccess = ! $e instanceof LockException;
+            $isLockSuccess = ! $e instanceof LockAcquireException;
         }
 
         $this->writeSyncResult($isLockSuccess, $returnValue, $exception?->getMessage());

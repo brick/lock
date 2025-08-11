@@ -4,22 +4,33 @@ declare(strict_types=1);
 
 namespace Brick\Lock;
 
+use Brick\Lock\Exception\LockAcquireException;
+use Brick\Lock\Exception\LockReleaseException;
+use Brick\Lock\Exception\LockWaitException;
 use Closure;
 
 abstract readonly class AbstractLock implements LockInterface
 {
     public function wait(): void
     {
-        $this->acquire();
-        $this->release();
+        try {
+            $this->acquire();
+            $this->release();
+        } catch (LockAcquireException|LockReleaseException $e) {
+            throw LockWaitException::wrap($e);
+        }
     }
 
     public function tryWaitWithTimeout(int $seconds): bool
     {
-        if ($this->tryAcquireWithTimeout($seconds)) {
-            $this->release();
+        try {
+            if ($this->tryAcquireWithTimeout($seconds)) {
+                $this->release();
 
-            return true;
+                return true;
+            }
+        } catch (LockAcquireException|LockReleaseException $e) {
+            throw LockWaitException::wrap($e);
         }
 
         return false;

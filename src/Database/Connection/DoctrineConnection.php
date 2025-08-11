@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Brick\Lock\Database\Connection;
 
 use Brick\Lock\Database\ConnectionInterface;
-use Brick\Lock\LockException;
+use Brick\Lock\Database\QueryException;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 
@@ -24,17 +24,17 @@ final readonly class DoctrineConnection implements ConnectionInterface
         try {
             $rows = $this->connection->fetchAllNumeric($sql, $params);
         } catch (Exception $e) {
-            throw new LockException(sprintf('An error occurred while executing the query "%s": %s', $sql, $e->getMessage()), 0, $e);
+            throw new QueryException(sprintf('An error occurred while executing the query "%s": %s', $sql, $e->getMessage()), $e);
         }
 
         if (count($rows) !== 1) {
-            throw new LockException(sprintf('Query "%s" returned %d rows, expected 1.', $sql, count($rows)));
+            throw new QueryException(sprintf('Query "%s" returned %d rows, expected 1.', $sql, count($rows)));
         }
 
         $columns = $rows[0];
 
         if (count($columns) !== 1) {
-            throw new LockException(sprintf('Query "%s" returned %d columns, expected 1.', $sql, count($columns)));
+            throw new QueryException(sprintf('Query "%s" returned %d columns, expected 1.', $sql, count($columns)));
         }
 
         /** @var scalar|null */
