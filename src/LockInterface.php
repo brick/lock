@@ -8,6 +8,7 @@ use Brick\Lock\Exception\LockAcquireException;
 use Brick\Lock\Exception\LockReleaseException;
 use Brick\Lock\Exception\LockWaitException;
 use Closure;
+use InvalidArgumentException;
 
 interface LockInterface
 {
@@ -42,8 +43,9 @@ interface LockInterface
      *
      * @return bool True if the lock was acquired, false if the timeout expired before the lock became available.
      *
-     * @throws LockAcquireException If the lock cannot be acquired due to an error. The state of the lock is undefined
-     *                              after such an exception.
+     * @throws InvalidArgumentException If the timeout is negative or zero.
+     * @throws LockAcquireException     If the lock cannot be acquired due to an error. The state of the lock is
+     *                                  undefined after such an exception.
      */
     public function tryAcquireWithTimeout(int $seconds): bool;
 
@@ -75,8 +77,9 @@ interface LockInterface
      *
      * @return bool True if the lock was available, false if the timeout expired before the lock became available.
      *
-     * @throws LockWaitException If an error occurs while waiting for the lock. The state of the lock is undefined
-     *                           after such an exception.
+     * @throws InvalidArgumentException If the timeout is negative or zero.
+     * @throws LockWaitException        If an error occurs while waiting for the lock. The state of the lock is
+     *                                  undefined after such an exception.
      */
     public function tryWaitWithTimeout(int $seconds): bool;
 
@@ -141,10 +144,11 @@ interface LockInterface
      * @return SynchronizeSuccess<T>|null The return value of the closure wrapped in a SynchronizeSuccess object,
      *                                     or null if the lock could not be acquired.
      *
-     * @throws LockAcquireException If the lock cannot be acquired due to an error. The closure was not executed, the
-     *                              state of the lock is undefined.
-     * @throws LockReleaseException If the lock cannot be released due to an error. The closure was executed
-     *                              (successfully or not), the state of the lock is undefined.
+     * @throws InvalidArgumentException If the timeout is negative or zero.
+     * @throws LockAcquireException     If the lock cannot be acquired due to an error. The closure was not executed,
+     *                                  the state of the lock is undefined.
+     * @throws LockReleaseException     If the lock cannot be released due to an error. The closure was executed
+     *                                  (successfully or not), the state of the lock is undefined.
      */
     public function trySynchronizeWithTimeout(int $seconds, Closure $task): ?SynchronizeSuccess;
 }

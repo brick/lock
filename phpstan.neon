@@ -8,5 +8,3 @@ parameters:
     exceptions:
         check:
             missingCheckedExceptionInThrows: true
-        uncheckedExceptionClasses:
-            - InvalidArgumentException
