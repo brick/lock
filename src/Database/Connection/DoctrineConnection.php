@@ -24,7 +24,7 @@ final readonly class DoctrineConnection implements ConnectionInterface
         try {
             $rows = $this->connection->fetchAllNumeric($sql, $params);
         } catch (Exception $e) {
-            throw new QueryException(sprintf('An error occurred while executing the query "%s": %s', $sql, $e->getMessage()), $e);
+            throw new QueryException(sprintf('An error occurred while executing the query "%s"', $sql), $e);
         }
 
         if (count($rows) !== 1) {

@@ -34,7 +34,7 @@ final readonly class PostgresLockDriver implements LockDriverInterface
         try {
             $this->connection->querySingleValue('SELECT pg_advisory_lock(?, ?)', $this->hashLockName($lockName));
         } catch (QueryException $e) {
-            throw LockAcquireException::forLockName($lockName, sprintf('Error while calling pg_advisory_lock(): %s', $e->getMessage()), $e);
+            throw LockAcquireException::forLockName($lockName, 'Error while calling pg_advisory_lock()', $e);
         }
     }
 
@@ -68,7 +68,7 @@ final readonly class PostgresLockDriver implements LockDriverInterface
         try {
             $result = $this->connection->querySingleValue('SELECT pg_advisory_unlock(?, ?)', $this->hashLockName($lockName));
         } catch (QueryException $e) {
-            throw LockReleaseException::forLockName($lockName, sprintf('Error while calling pg_advisory_unlock(): %s', $e->getMessage()), $e);
+            throw LockReleaseException::forLockName($lockName, 'Error while calling pg_advisory_unlock()', $e);
         }
 
         if ($result === true) {
@@ -95,7 +95,7 @@ final readonly class PostgresLockDriver implements LockDriverInterface
         try {
             $result = $this->connection->querySingleValue('SELECT pg_try_advisory_lock(?, ?)', $lockHash);
         } catch (QueryException $e) {
-            throw LockAcquireException::forLockName($lockName, sprintf('Error while calling pg_try_advisory_lock(): %s', $e->getMessage()), $e);
+            throw LockAcquireException::forLockName($lockName, 'Error while calling pg_try_advisory_lock()', $e);
         }
 
         if (is_bool($result)) {

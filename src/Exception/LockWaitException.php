@@ -14,6 +14,6 @@ final class LockWaitException extends LockException
 {
     public static function wrap(Throwable $previous): self
     {
-        return new self(sprintf('Cannot wait for lock: %s', $previous->getMessage()), $previous);
+        return new self('Cannot wait for lock', $previous);
     }
 }

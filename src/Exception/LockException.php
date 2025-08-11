@@ -14,6 +14,10 @@ abstract class LockException extends RuntimeException
 {
     final public function __construct(string $message, ?Throwable $previous = null)
     {
+        if ($previous !== null) {
+            $message .= ': ' . $previous->getMessage();
+        }
+
         parent::__construct($message, previous: $previous);
     }
 }

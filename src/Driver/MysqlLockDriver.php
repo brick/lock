@@ -48,7 +48,7 @@ final readonly class MysqlLockDriver implements LockDriverInterface
         try {
             $result = $this->connection->querySingleValue('SELECT RELEASE_LOCK(?)', [$hashedName]);
         } catch (QueryException $e) {
-            throw LockReleaseException::forLockName($lockName, sprintf('Error while calling RELEASE_LOCK(): %s', $e->getMessage()), $e);
+            throw LockReleaseException::forLockName($lockName, 'Error while calling RELEASE_LOCK()', $e);
         }
 
         if ($result === 1 || $result === '1') {
@@ -82,7 +82,7 @@ final readonly class MysqlLockDriver implements LockDriverInterface
         try {
             $result = $this->connection->querySingleValue('SELECT GET_LOCK(?, ?)', [$hashedName, $timeoutSeconds]);
         } catch (QueryException $e) {
-            throw LockAcquireException::forLockName($lockName, sprintf('Error while calling GET_LOCK(): %s', $e->getMessage()), $e);
+            throw LockAcquireException::forLockName($lockName, 'Error while calling GET_LOCK()', $e);
         }
 
         return match ($result) {

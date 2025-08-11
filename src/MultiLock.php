@@ -47,10 +47,7 @@ final readonly class MultiLock extends AbstractLock
                         $this->store->release($acquiredLockName);
                     }
                 } catch (LockReleaseException $e) {
-                    throw LockAcquireException::forMultiLock(
-                        sprintf('Failed to release previously acquired lock: %s', $e->getMessage()),
-                        $e,
-                    );
+                    throw LockAcquireException::forMultiLock('Failed to release previously acquired lock', $e);
                 }
 
                 return false;
@@ -85,10 +82,7 @@ final readonly class MultiLock extends AbstractLock
                         $this->store->release($acquiredLockName);
                     }
                 } catch (LockReleaseException $e) {
-                    throw LockAcquireException::forMultiLock(
-                        sprintf('Failed to release previously acquired lock: %s', $e->getMessage()),
-                        $e,
-                    );
+                    throw LockAcquireException::forMultiLock('Failed to release previously acquired lock', $e);
                 }
 
                 return false;

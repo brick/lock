@@ -34,7 +34,7 @@ final readonly class PdoConnection implements ConnectionInterface
             /** @var list<list<scalar|null>> $rows */
             $rows = $statement->fetchAll(PDO::FETCH_NUM);
         } catch (PDOException $e) {
-            throw new QueryException(sprintf('An error occurred while executing the query "%s": %s', $sql, $e->getMessage()), $e);
+            throw new QueryException(sprintf('An error occurred while executing the query "%s"', $sql), $e);
         } finally {
             /** @phpstan-ignore missingType.checkedException */
             $this->pdo->setAttribute(PDO::ATTR_ERRMODE, $previousErrorMode);
