@@ -161,12 +161,9 @@ class Worker
         $exception = null;
 
         try {
-            $result = $lock->trySynchronize($task);
-            $isLockSuccess = $result->isLockSuccess();
-
-            if ($isLockSuccess) {
-                $returnValue = $result->getReturnValue();
-            }
+            $synchronizeSuccess = $lock->trySynchronize($task);
+            $returnValue = $synchronizeSuccess?->returnValue;
+            $isLockSuccess = $synchronizeSuccess !== null;
         } catch (Exception $e) {
             $exception = $e;
             $isLockSuccess = ! $e instanceof LockException;
@@ -186,12 +183,9 @@ class Worker
         $exception = null;
 
         try {
-            $result = $lock->trySynchronizeWithTimeout($timeoutSeconds, $task);
-            $isLockSuccess = $result->isLockSuccess();
-
-            if ($isLockSuccess) {
-                $returnValue = $result->getReturnValue();
-            }
+            $synchronizeSuccess = $lock->trySynchronizeWithTimeout($timeoutSeconds, $task);
+            $returnValue = $synchronizeSuccess?->returnValue;
+            $isLockSuccess = $synchronizeSuccess !== null;
         } catch (Exception $e) {
             $exception = $e;
             $isLockSuccess = ! $e instanceof LockException;

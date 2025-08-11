@@ -77,8 +77,9 @@ interface LockInterface
     /**
      * Executes the given task while holding the lock.
      *
-     * Once the lock is acquired, the closure is executed, and its return value is returned by this method. If the
-     * closure throws an exception, the lock is released and the exception bubbles up.
+     * Once the lock is acquired, the closure is executed, and its return value is returned as is.
+     *
+     * If the closure throws an exception, the lock is released and the exception bubbles up.
      *
      * This method is blocking and will wait for the lock to become available.
      *
@@ -86,42 +87,52 @@ interface LockInterface
      *
      * @param Closure(): T $task
      *
-     * @return T The result of the closure execution.
+     * @return T The return value of the closure.
      *
-     * @throws LockException If the lock cannot be acquired due to an error. Whether the lock is held after an error is
-     *                        undefined.
+     * @throws LockException If the lock cannot be acquired or released due to an error. Whether the lock is held after
+     *                       an error is undefined.
      */
     public function synchronize(Closure $task): mixed;
 
     /**
      * Executes the given task while holding the lock, non-blocking.
      *
-     * If the lock is acquired, the closure is executed, and this method returns a successful SynchronizeResult
-     * containing the return value of the closure. If the closure throws an exception, the lock is released and the
-     * closure's exception bubbles up. If the lock cannot be acquired immediately, this method returns a failed
-     * SynchronizeResult.
+     * If the lock is available immediately, it is acquired, the closure is executed, and its return value is
+     * returned wrapped in a SynchronizeSuccess object. If the lock is currently held by another process, this method
+     * returns null.
+     *
+     * If the closure throws an exception, the lock is released and the exception bubbles up.
      *
      * @template T
      *
      * @param Closure(): T $task
      *
-     * @return SynchronizeResult<T>
+     * @return SynchronizeSuccess<T>|null The return value of the closure wrapped in a SynchronizeSuccess object,
+     *                                    or null if the lock could not be acquired.
+     *
+     * @throws LockException If the lock cannot be acquired or released due to an error. Whether the lock is held after
+     *                       an error is undefined.
      */
-    public function trySynchronize(Closure $task): SynchronizeResult;
+    public function trySynchronize(Closure $task): ?SynchronizeSuccess;
 
     /**
      * Executes the given task while holding the lock, with a maximum wait time.
      *
-     * If the lock is acquired before the timeout expires, the closure is executed, and this method returns a successful
-     * SynchronizeResult containing the return value of the closure. If the closure throws an exception, the lock is
-     * released and the closure's exception bubbles up. If the lock still cannot be acquired after the timeout expires,
-     * this method returns a failed SynchronizeResult.
+     * If the lock is successfully acquired before the timeout expires, the closure is executed, and its return value is
+     * returned wrapped in a SynchronizeSuccess object. If the lock cannot be acquired before the timeout expires, this
+     * method returns null.
+     *
+     * If the closure throws an exception, the lock is released and the exception bubbles up.
      *
      * @template T
      *
      * @param Closure(): T $task
      *
-     * @return SynchronizeResult<T>
+     * @return SynchronizeSuccess<T>|null The return value of the closure wrapped in a SynchronizeSuccess object,
+     *                                     or null if the lock could not be acquired.
+     *
+     * @throws LockException If the lock cannot be acquired or released due to an error. Whether the lock is held after
+     *                       an error is undefined.
      */
-    public function trySynchronizeWithTimeout(int $seconds, Closure $task): SynchronizeResult;
+    public function trySynchronizeWithTimeout(int $seconds, Closure $task): ?SynchronizeSuccess;
 }
