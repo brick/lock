@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Brick\Lock\Tests\Util;
 
 use Brick\Lock\Exception\LockAcquireException;
+use Brick\Lock\Exception\LockException;
 use Brick\Lock\LockFactory;
 use Brick\Lock\LockInterface;
 use Closure;
@@ -64,60 +65,84 @@ class Worker
                     break;
 
                 case 'acquire':
-                    $lock->acquire();
-                    $this->writeAcquireResult(true);
+                    $this->guard(function() use ($lock) {
+                        $lock->acquire();
+                        $this->writeAcquireResult(true);
+                    });
                     break;
 
                 case 'tryAcquire':
-                    $this->writeAcquireResult(
-                        $lock->tryAcquire(),
-                    );
+                    $this->guard(function() use ($lock) {
+                        $this->writeAcquireResult(
+                            $lock->tryAcquire(),
+                        );
+                    });
                     break;
 
                 case 'tryAcquireWithTimeout':
-                    $this->writeAcquireResult(
-                        $lock->tryAcquireWithTimeout($command->timeoutSeconds),
-                    );
+                    $this->guard(function() use ($lock, $command) {
+                        $this->writeAcquireResult(
+                            $lock->tryAcquireWithTimeout($command->timeoutSeconds),
+                        );
+                    });
                     break;
 
                 case 'release':
-                    $lock->release();
-                    $this->write('RELEASED');
+                    $this->guard(function() use ($lock) {
+                        $lock->release();
+                        $this->write('RELEASED');
+                    });
                     break;
 
                 case 'wait':
-                    $lock->wait();
-                    $this->writeWaitResult(true);
+                    $this->guard(function() use ($lock) {
+                        $lock->wait();
+                        $this->writeWaitResult(true);
+                    });
                     break;
 
                 case 'tryWaitWithTimeout':
-                    $this->writeWaitResult(
-                        $lock->tryWaitWithTimeout($command->timeoutSeconds),
-                    );
+                    $this->guard(function() use ($lock, $command) {
+                        $this->writeWaitResult(
+                            $lock->tryWaitWithTimeout($command->timeoutSeconds),
+                        );
+                    });
                     break;
 
                 case 'synchronize_return':
-                    $this->doSynchronize($lock, $returnTask);
+                    $this->guard(function() use ($lock, $returnTask) {
+                        $this->doSynchronize($lock, $returnTask);
+                    });
                     break;
 
                 case 'synchronize_exception':
-                    $this->doSynchronize($lock, $exceptionTask);
+                    $this->guard(function() use ($lock, $exceptionTask) {
+                        $this->doSynchronize($lock, $exceptionTask);
+                    });
                     break;
 
                 case 'trySynchronize_return':
-                    $this->doTrySynchronize($lock, $returnTask);
+                    $this->guard(function() use ($lock, $returnTask) {
+                        $this->doTrySynchronize($lock, $returnTask);
+                    });
                     break;
 
                 case 'trySynchronize_exception':
-                    $this->doTrySynchronize($lock, $exceptionTask);
+                    $this->guard(function() use ($lock, $exceptionTask) {
+                        $this->doTrySynchronize($lock, $exceptionTask);
+                    });
                     break;
 
                 case 'trySynchronizeWithTimeout_return':
-                    $this->doTrySynchronizeWithTimeout($lock, $returnTask, $command->timeoutSeconds);
+                    $this->guard(function() use ($lock, $returnTask, $command) {
+                        $this->doTrySynchronizeWithTimeout($lock, $returnTask, $command->timeoutSeconds);
+                    });
                     break;
 
                 case 'trySynchronizeWithTimeout_exception':
-                    $this->doTrySynchronizeWithTimeout($lock, $exceptionTask, $command->timeoutSeconds);
+                    $this->guard(function() use ($lock, $exceptionTask, $command) {
+                        $this->doTrySynchronizeWithTimeout($lock, $exceptionTask, $command->timeoutSeconds);
+                    });
                     break;
 
                 default:
@@ -129,6 +154,19 @@ class Worker
         // The process is supposed to be killed by the parent process.
         $this->writeErr('Unexpected end of input');
         exit(1);
+    }
+
+    /**
+     * Executes the given closure, catching LockException.
+     */
+    private function guard(Closure $closure): void
+    {
+        try {
+            $closure();
+        } catch (LockException $e) {
+            $shortName = (new \ReflectionClass($e))->getShortName();
+            $this->write($shortName);
+        }
     }
 
     /**
