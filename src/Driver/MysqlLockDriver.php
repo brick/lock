@@ -20,13 +20,19 @@ final readonly class MysqlLockDriver implements LockDriverInterface
 {
     public function __construct(
         private ConnectionInterface $connection,
+        private bool $isMariadb,
     ) {
     }
 
     #[Override]
     public function acquire(string $lockName): void
     {
-        $lockAcquired = $this->doAcquire($lockName, timeoutSeconds: -1);
+        // MySQL uses negative timeout values to indicate infinite timeout, but MariaDB does not support this.
+        // Let's use a very large value that's still a valid 32-bit signed integer, just to be on the safe side.
+        // We're good for 63 years of lock.
+        $timeoutSeconds = $this->isMariadb ? 2_000_000_000 : -1;
+
+        $lockAcquired = $this->doAcquire($lockName, $timeoutSeconds);
 
         if (! $lockAcquired) {
             throw LockAcquireException::forLockName($lockName, 'Got false from GET_LOCK() with infinite timeout, which should not happen.');

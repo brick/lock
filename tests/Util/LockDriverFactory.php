@@ -53,6 +53,8 @@ final readonly class LockDriverFactory
         return [
             'mysql_pdo' => self::createMysqlPdoDriver(...),
             'mysql_doctrine' => self::createMysqlDoctrineDriver(...),
+            'mariadb_pdo' => self::createMariadbPdoDriver(...),
+            'mariadb_doctrine' => self::createMariadbDoctrineDriver(...),
             'postgres_pdo' => self::createPostgresPdoDriver(...),
             'postgres_doctrine' => self::createPostgresDoctrineDriver(...),
         ];
@@ -78,7 +80,7 @@ final readonly class LockDriverFactory
         ]);
 
         $connection = new PdoConnection($pdo);
-        $driver = new MysqlLockDriver($connection);
+        $driver = new MysqlLockDriver($connection, isMariadb: false);
 
         $serverVersion = $connection->querySingleValue('SELECT VERSION()');
 
@@ -107,13 +109,72 @@ final readonly class LockDriverFactory
         ]);
 
         $connection = new DoctrineConnection($connection);
-        $driver = new MysqlLockDriver($connection);
+        $driver = new MysqlLockDriver($connection, isMariadb: false);
 
         $serverVersion = $connection->querySingleValue('SELECT VERSION()');
 
         return new LockDriverWithInfo($driver, [
             'Using MysqlLockDriver through DoctrineConnection',
             'MySQL server version: ' . $serverVersion,
+        ]);
+    }
+
+    /**
+     * @throws LockDriverFactoryException
+     */
+    private static function createMariadbPdoDriver(): LockDriverWithInfo
+    {
+        $emulatePrepares = self::getPdoEmulatePreparesEnv();
+        $errmode = self::getPdoErrmodeEnv();
+
+        $host = self::getRequiredEnv('MARIADB_HOST');
+        $port = self::getOptionalEnvOrDefault('MARIADB_PORT', '3306');
+        $username = self::getRequiredEnv('MARIADB_USER');
+        $password = self::getRequiredEnv('MARIADB_PASSWORD');
+
+        $dsn = sprintf('mysql:host=%s;port=%d', $host, $port);
+        $pdo = new PDO($dsn, $username, $password, [
+            PDO::ATTR_ERRMODE => $errmode,
+            PDO::ATTR_EMULATE_PREPARES => $emulatePrepares,
+        ]);
+
+        $connection = new PdoConnection($pdo);
+        $driver = new MysqlLockDriver($connection, isMariadb: true);
+
+        $serverVersion = $connection->querySingleValue('SELECT VERSION()');
+
+        return new LockDriverWithInfo($driver, [
+            'Using MysqlLockDriver through PdoConnection',
+            'MariaDB server version: ' . $serverVersion,
+        ]);
+    }
+
+    /**
+     * @throws LockDriverFactoryException
+     */
+    private static function createMariadbDoctrineDriver(): LockDriverWithInfo
+    {
+        $host = self::getRequiredEnv('MARIADB_HOST');
+        $port = self::getOptionalEnvOrDefault('MARIADB_PORT', '3306');
+        $username = self::getRequiredEnv('MARIADB_USER');
+        $password = self::getRequiredEnv('MARIADB_PASSWORD');
+
+        $connection = DriverManager::getConnection([
+            'user' => $username,
+            'password' => $password,
+            'host' => $host,
+            'port' => (int) $port,
+            'driver' => 'pdo_mysql',
+        ]);
+
+        $connection = new DoctrineConnection($connection);
+        $driver = new MysqlLockDriver($connection, isMariadb: true);
+
+        $serverVersion = $connection->querySingleValue('SELECT VERSION()');
+
+        return new LockDriverWithInfo($driver, [
+            'Using MysqlLockDriver through DoctrineConnection',
+            'MariaDB server version: ' . $serverVersion,
         ]);
     }
 

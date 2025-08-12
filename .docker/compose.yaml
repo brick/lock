@@ -14,6 +14,10 @@ services:
       - MYSQL_PORT
       - MYSQL_USER
       - MYSQL_PASSWORD
+      - MARIADB_HOST
+      - MARIADB_PORT
+      - MARIADB_USER
+      - MARIADB_PASSWORD
       - POSTGRES_HOST
       - POSTGRES_PORT
       - POSTGRES_USER
@@ -27,6 +31,11 @@ services:
     image: mysql:8
     environment:
       MYSQL_ROOT_PASSWORD: password
+
+  mariadb:
+    image: mariadb:11
+    environment:
+      MARIADB_ROOT_PASSWORD: password
 
   postgres:
     image: postgres:17
