@@ -72,6 +72,26 @@ class LockTest extends TestCase
         $b->expectWithin('1s', 'ACQUIRED');
     }
 
+    public function testReleaseWithoutAcquire(): void
+    {
+        $a = new RemoteLock();
+
+        $a->release('foo');
+        $a->expectWithin('1s', 'LockReleaseException');
+    }
+
+    public function testReleaseLockAcquiredByAnotherProcess(): void
+    {
+        $a = new RemoteLock();
+        $b = new RemoteLock();
+
+        $a->acquire('foo');
+        $a->expectWithin('1s', 'ACQUIRED');
+
+        $b->release('foo');
+        $b->expectWithin('1s', 'LockReleaseException');
+    }
+
     public function testWait(): void
     {
         $a = new RemoteLock();
