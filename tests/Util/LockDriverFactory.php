@@ -6,6 +6,7 @@ namespace Brick\Lock\Tests\Util;
 
 use Brick\Lock\Database\Connection\DoctrineConnection;
 use Brick\Lock\Database\Connection\PdoConnection;
+use Brick\Lock\Driver\MariadbLockDriver;
 use Brick\Lock\Driver\MysqlLockDriver;
 use Brick\Lock\Driver\PostgresLockDriver;
 use Closure;
@@ -80,7 +81,7 @@ final readonly class LockDriverFactory
         ]);
 
         $connection = new PdoConnection($pdo);
-        $driver = new MysqlLockDriver($connection, isMariadb: false);
+        $driver = new MysqlLockDriver($connection);
 
         $serverVersion = $connection->querySingleValue('SELECT VERSION()');
 
@@ -109,7 +110,7 @@ final readonly class LockDriverFactory
         ]);
 
         $connection = new DoctrineConnection($connection);
-        $driver = new MysqlLockDriver($connection, isMariadb: false);
+        $driver = new MysqlLockDriver($connection);
 
         $serverVersion = $connection->querySingleValue('SELECT VERSION()');
 
@@ -139,12 +140,12 @@ final readonly class LockDriverFactory
         ]);
 
         $connection = new PdoConnection($pdo);
-        $driver = new MysqlLockDriver($connection, isMariadb: true);
+        $driver = new MariadbLockDriver($connection);
 
         $serverVersion = $connection->querySingleValue('SELECT VERSION()');
 
         return new LockDriverWithInfo($driver, [
-            'Using MysqlLockDriver through PdoConnection',
+            'Using MariadbLockDriver through PdoConnection',
             'MariaDB server version: ' . $serverVersion,
         ]);
     }
@@ -168,12 +169,12 @@ final readonly class LockDriverFactory
         ]);
 
         $connection = new DoctrineConnection($connection);
-        $driver = new MysqlLockDriver($connection, isMariadb: true);
+        $driver = new MariadbLockDriver($connection);
 
         $serverVersion = $connection->querySingleValue('SELECT VERSION()');
 
         return new LockDriverWithInfo($driver, [
-            'Using MysqlLockDriver through DoctrineConnection',
+            'Using MariadbLockDriver through DoctrineConnection',
             'MariaDB server version: ' . $serverVersion,
         ]);
     }
