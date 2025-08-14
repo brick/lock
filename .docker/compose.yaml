@@ -5,6 +5,8 @@ services:
       context: ./php
       args:
         - PHP_VERSION
+        - UID
+        - GID
     volumes:
       - ..:/app
       - /app/.git # exclude .git
