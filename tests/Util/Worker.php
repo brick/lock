@@ -28,6 +28,8 @@ class Worker
         }
 
         $lockDriver = $lockDriverWithInfo->lockDriver;
+        $connection = $lockDriverWithInfo->connection;
+
         $lockFactory = new LockFactory($lockDriver);
 
         while (($line = fgets(STDIN)) !== false) {
@@ -143,6 +145,21 @@ class Worker
                     $this->guard(function() use ($lock, $exceptionTask, $command) {
                         $this->doTrySynchronizeWithTimeout($lock, $exceptionTask, $command->timeoutSeconds);
                     });
+                    break;
+
+                case 'beginTransaction':
+                    $connection->beginTransaction();
+                    $this->write('BEGIN');
+                    break;
+
+                case 'commit':
+                    $connection->commit();
+                    $this->write('COMMIT');
+                    break;
+
+                case 'rollBack':
+                    $connection->rollBack();
+                    $this->write('ROLLBACK');
                     break;
 
                 default:

@@ -268,4 +268,98 @@ class LockTest extends TestCase
         $a->kill();
         $b->expectWithin('1s', 'ACQUIRED');
     }
+
+    public function testStartingAndCommittingTransactionAfterLock(): void
+    {
+        $a = new RemoteLock();
+        $b = new RemoteLock();
+
+        $a->acquire('foo');
+        $a->expectWithin('1s', 'ACQUIRED');
+
+        $b->acquire('foo');
+        $b->expectNothingAfter('1s');
+
+        $a->beginTransaction();
+        $a->expectWithin('1s', 'BEGIN');
+        $b->expectNothingAfter('1s');
+
+        $a->commit();
+        $a->expectWithin('1s', 'COMMIT');
+        $b->expectNothingAfter('1s');
+
+        $a->release('foo');
+        $a->expectWithin('1s', 'RELEASED');
+        $b->expectWithin('1s', 'ACQUIRED');
+    }
+
+    public function testStartingAndRollingBackTransactionAfterLock(): void
+    {
+        $a = new RemoteLock();
+        $b = new RemoteLock();
+
+        $a->acquire('foo');
+        $a->expectWithin('1s', 'ACQUIRED');
+
+        $b->acquire('foo');
+        $b->expectNothingAfter('1s');
+
+        $a->beginTransaction();
+        $a->expectWithin('1s', 'BEGIN');
+        $b->expectNothingAfter('1s');
+
+        $a->rollBack();
+        $a->expectWithin('1s', 'ROLLBACK');
+        $b->expectNothingAfter('1s');
+
+        $a->release('foo');
+        $a->expectWithin('1s', 'RELEASED');
+        $b->expectWithin('1s', 'ACQUIRED');
+    }
+
+    public function testLockAcquiredDuringTransactionIsKeptAfterCommit(): void
+    {
+        $a = new RemoteLock();
+        $b = new RemoteLock();
+
+        $a->beginTransaction();
+        $a->expectWithin('1s', 'BEGIN');
+
+        $a->acquire('foo');
+        $a->expectWithin('1s', 'ACQUIRED');
+
+        $b->acquire('foo');
+        $b->expectNothingAfter('1s');
+
+        $a->commit();
+        $a->expectWithin('1s', 'COMMIT');
+        $b->expectNothingAfter('1s');
+
+        $a->release('foo');
+        $a->expectWithin('1s', 'RELEASED');
+        $b->expectWithin('1s', 'ACQUIRED');
+    }
+
+    public function testLockAcquiredDuringTransactionIsKeptAfterRollback(): void
+    {
+        $a = new RemoteLock();
+        $b = new RemoteLock();
+
+        $a->beginTransaction();
+        $a->expectWithin('1s', 'BEGIN');
+
+        $a->acquire('foo');
+        $a->expectWithin('1s', 'ACQUIRED');
+
+        $b->acquire('foo');
+        $b->expectNothingAfter('1s');
+
+        $a->rollBack();
+        $a->expectWithin('1s', 'ROLLBACK');
+        $b->expectNothingAfter('1s');
+
+        $a->release('foo');
+        $a->expectWithin('1s', 'RELEASED');
+        $b->expectWithin('1s', 'ACQUIRED');
+    }
 }

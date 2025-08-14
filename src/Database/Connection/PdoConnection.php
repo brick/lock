@@ -55,4 +55,22 @@ final readonly class PdoConnection implements ConnectionInterface
         /** @var scalar|null */
         return $columns[0];
     }
+
+    #[Override]
+    public function beginTransaction(): void
+    {
+        $this->pdo->beginTransaction();
+    }
+
+    #[Override]
+    public function commit(): void
+    {
+        $this->pdo->commit();
+    }
+
+    #[Override]
+    public function rollBack(): void
+    {
+        $this->pdo->rollBack();
+    }
 }

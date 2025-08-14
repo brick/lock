@@ -85,7 +85,7 @@ final readonly class LockDriverFactory
 
         $serverVersion = $connection->querySingleValue('SELECT VERSION()');
 
-        return new LockDriverWithInfo($driver, [
+        return new LockDriverWithInfo($driver, $connection, [
             'Using MysqlLockDriver through PdoConnection',
             'MySQL server version: ' . $serverVersion,
         ]);
@@ -114,7 +114,7 @@ final readonly class LockDriverFactory
 
         $serverVersion = $connection->querySingleValue('SELECT VERSION()');
 
-        return new LockDriverWithInfo($driver, [
+        return new LockDriverWithInfo($driver, $connection, [
             'Using MysqlLockDriver through DoctrineConnection',
             'MySQL server version: ' . $serverVersion,
         ]);
@@ -144,7 +144,7 @@ final readonly class LockDriverFactory
 
         $serverVersion = $connection->querySingleValue('SELECT VERSION()');
 
-        return new LockDriverWithInfo($driver, [
+        return new LockDriverWithInfo($driver, $connection, [
             'Using MariadbLockDriver through PdoConnection',
             'MariaDB server version: ' . $serverVersion,
         ]);
@@ -173,7 +173,7 @@ final readonly class LockDriverFactory
 
         $serverVersion = $connection->querySingleValue('SELECT VERSION()');
 
-        return new LockDriverWithInfo($driver, [
+        return new LockDriverWithInfo($driver, $connection, [
             'Using MariadbLockDriver through DoctrineConnection',
             'MariaDB server version: ' . $serverVersion,
         ]);
@@ -203,7 +203,7 @@ final readonly class LockDriverFactory
 
         $serverVersion = $connection->querySingleValue('SELECT version()');
 
-        return new LockDriverWithInfo($driver, [
+        return new LockDriverWithInfo($driver, $connection, [
             'Using PostgresLockDriver through PdoConnection',
             'PostgreSQL server version: ' . $serverVersion,
         ]);
@@ -232,7 +232,7 @@ final readonly class LockDriverFactory
 
         $serverVersion = $connection->querySingleValue('SELECT version()');
 
-        return new LockDriverWithInfo($driver, [
+        return new LockDriverWithInfo($driver, $connection, [
             'Using PostgresLockDriver through DoctrineConnection',
             'PostgreSQL server version: ' . $serverVersion,
         ]);

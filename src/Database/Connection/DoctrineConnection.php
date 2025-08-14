@@ -42,4 +42,22 @@ final readonly class DoctrineConnection implements ConnectionInterface
         /** @var scalar|null */
         return $columns[0];
     }
+
+    #[Override]
+    public function beginTransaction(): void
+    {
+        $this->connection->beginTransaction();
+    }
+
+    #[Override]
+    public function commit(): void
+    {
+        $this->connection->commit();
+    }
+
+    #[Override]
+    public function rollBack(): void
+    {
+        $this->connection->rollBack();
+    }
 }

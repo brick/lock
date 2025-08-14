@@ -183,6 +183,21 @@ final class RemoteLock
         Assert::fail('Worker did not respond within ' . $duration);
     }
 
+    public function beginTransaction(): void
+    {
+        $this->sendCommand('beginTransaction');
+    }
+
+    public function commit(): void
+    {
+        $this->sendCommand('commit');
+    }
+
+    public function rollBack(): void
+    {
+        $this->sendCommand('rollBack');
+    }
+
     /**
      * Expects that the worker does not produce any output for the given duration.
      *
