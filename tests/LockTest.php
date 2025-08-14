@@ -230,4 +230,27 @@ class LockTest extends TestCase
         $b->trySynchronizeWithTimeoutReturningTask('foo', timeoutSeconds: 1, taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
         $b->expectWithin('1s', 'SYNC_LOCK_SUCCESS;RETURN:SecondTaskSuccess');
     }
+
+    public function testLockIsReentrant(): void
+    {
+        $a = new RemoteLock();
+        $b = new RemoteLock();
+
+        $a->acquire('foo');
+        $a->expectWithin('1s', 'ACQUIRED');
+
+        $b->acquire('foo');
+        $b->expectNothingAfter('1s');
+
+        $a->acquire('foo');
+        $a->expectWithin('1s', 'ACQUIRED');
+
+        $a->release('foo');
+        $a->expectWithin('1s', 'RELEASED');
+        $b->expectNothingAfter('1s');
+
+        $a->release('foo');
+        $a->expectWithin('1s', 'RELEASED');
+        $b->expectWithin('1s', 'ACQUIRED');
+    }
 }

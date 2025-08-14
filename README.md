@@ -235,6 +235,26 @@ The object returned by `createMultiLock()` implements the same `LockInterface` a
 
 The locks are acquired atomically, i.e. either all locks are acquired, or none of them are.
 
+## Reentrancy
+
+Locks in this library are **reentrant** (also known as recursive locks), meaning the same process can acquire a lock multiple times without causing a deadlock. This is particularly useful for recursive methods that call themselves, or when methods call other methods that also need the same lock.
+
+**How It Works**
+
+- Each time a process acquires a reentrant lock, an internal counter is incremented
+- The lock is only fully released when the counter returns to zero
+- Other processes must wait until the lock is completely released before they can acquire it
+
+```php
+$lock->acquire(); // Counter: 1 - blocks until the lock is available
+$lock->acquire(); // Counter: 2 - returns immediately
+$lock->acquire(); // Counter: 3 - returns immediately
+
+$lock->release(); // Counter: 2 - lock is still held
+$lock->release(); // Counter: 1 - lock is still held  
+$lock->release(); // Counter: 0 - lock is now fully released
+```
+
 ## Exceptions
 
 Depending on the operation called, the following exceptions may be thrown:
