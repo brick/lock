@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Brick\Lock;
 
+use InvalidArgumentException;
+
 /**
  * Creates lock objects that can acquire advisory locks.
  *
@@ -24,6 +26,8 @@ interface LockFactoryInterface
      * Acquiring a multi lock is an atomic operation: either all locks are acquired, or none are.
      *
      * @param string[] $names The lock names. Each name should uniquely identify the resource being locked.
+     *
+     * @throws InvalidArgumentException If the number of locks is less than 2.
      */
     public function createMultiLock(array $names): LockInterface;
 }

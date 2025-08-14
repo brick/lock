@@ -35,7 +35,7 @@ class Worker
         while (($line = fgets(STDIN)) !== false) {
             /** @var object{
              *     operation: string,
-             *     lockNames: non-empty-list<string>,
+             *     lockNames: list<string>,
              *     timeoutSeconds: int,
              *     taskDurationSeconds: int,
              *     taskMessage: string
@@ -43,7 +43,9 @@ class Worker
              */
             $command = json_decode($line, flags: JSON_THROW_ON_ERROR);
 
-            if (count($command->lockNames) === 1) {
+            if (count($command->lockNames) === 0) {
+                $lock = null;
+            } elseif (count($command->lockNames) === 1) {
                 $lock = $lockFactory->createLock($command->lockNames[0]);
             } else {
                 $lock = $lockFactory->createMultiLock($command->lockNames);
@@ -67,6 +69,7 @@ class Worker
                     break;
 
                 case 'acquire':
+                    $this->checkLock($lock);
                     $this->guard(function() use ($lock) {
                         $lock->acquire();
                         $this->writeAcquireResult(true);
@@ -74,6 +77,7 @@ class Worker
                     break;
 
                 case 'tryAcquire':
+                    $this->checkLock($lock);
                     $this->guard(function() use ($lock) {
                         $this->writeAcquireResult(
                             $lock->tryAcquire(),
@@ -82,6 +86,7 @@ class Worker
                     break;
 
                 case 'tryAcquireWithTimeout':
+                    $this->checkLock($lock);
                     $this->guard(function() use ($lock, $command) {
                         $this->writeAcquireResult(
                             $lock->tryAcquireWithTimeout($command->timeoutSeconds),
@@ -90,6 +95,7 @@ class Worker
                     break;
 
                 case 'release':
+                    $this->checkLock($lock);
                     $this->guard(function() use ($lock) {
                         $lock->release();
                         $this->write('RELEASED');
@@ -97,6 +103,7 @@ class Worker
                     break;
 
                 case 'wait':
+                    $this->checkLock($lock);
                     $this->guard(function() use ($lock) {
                         $lock->wait();
                         $this->writeWaitResult(true);
@@ -104,6 +111,7 @@ class Worker
                     break;
 
                 case 'tryWaitWithTimeout':
+                    $this->checkLock($lock);
                     $this->guard(function() use ($lock, $command) {
                         $this->writeWaitResult(
                             $lock->tryWaitWithTimeout($command->timeoutSeconds),
@@ -112,36 +120,42 @@ class Worker
                     break;
 
                 case 'synchronize_return':
+                    $this->checkLock($lock);
                     $this->guard(function() use ($lock, $returnTask) {
                         $this->doSynchronize($lock, $returnTask);
                     });
                     break;
 
                 case 'synchronize_exception':
+                    $this->checkLock($lock);
                     $this->guard(function() use ($lock, $exceptionTask) {
                         $this->doSynchronize($lock, $exceptionTask);
                     });
                     break;
 
                 case 'trySynchronize_return':
+                    $this->checkLock($lock);
                     $this->guard(function() use ($lock, $returnTask) {
                         $this->doTrySynchronize($lock, $returnTask);
                     });
                     break;
 
                 case 'trySynchronize_exception':
+                    $this->checkLock($lock);
                     $this->guard(function() use ($lock, $exceptionTask) {
                         $this->doTrySynchronize($lock, $exceptionTask);
                     });
                     break;
 
                 case 'trySynchronizeWithTimeout_return':
+                    $this->checkLock($lock);
                     $this->guard(function() use ($lock, $returnTask, $command) {
                         $this->doTrySynchronizeWithTimeout($lock, $returnTask, $command->timeoutSeconds);
                     });
                     break;
 
                 case 'trySynchronizeWithTimeout_exception':
+                    $this->checkLock($lock);
                     $this->guard(function() use ($lock, $exceptionTask, $command) {
                         $this->doTrySynchronizeWithTimeout($lock, $exceptionTask, $command->timeoutSeconds);
                     });
@@ -171,6 +185,17 @@ class Worker
         // The process is supposed to be killed by the parent process.
         $this->writeErr('Unexpected end of input');
         exit(1);
+    }
+
+    /**
+     * @phpstan-assert LockInterface $lock
+     */
+    private function checkLock(?LockInterface $lock): void
+    {
+        if ($lock === null) {
+            $this->writeErr('Lock names not provided');
+            exit(1);
+        }
     }
 
     /**

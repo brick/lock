@@ -18,11 +18,17 @@ final readonly class MultiLock extends AbstractLock
 
     /**
      * @param string[] $lockNames
+     *
+     * @throws InvalidArgumentException
      */
     public function __construct(
         private LockDriverInterface $store,
         array                       $lockNames,
     ) {
+        if (count($lockNames) < 2) {
+            throw new InvalidArgumentException('At least two lock names must be provided.');
+        }
+
         // sort lock names to minimize deadlock risk
         sort($lockNames);
         $this->lockNames = $lockNames;
