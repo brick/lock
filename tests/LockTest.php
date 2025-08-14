@@ -253,4 +253,19 @@ class LockTest extends TestCase
         $a->expectWithin('1s', 'RELEASED');
         $b->expectWithin('1s', 'ACQUIRED');
     }
+
+    public function testLockIsReleasedWhenConnectionIsClosed(): void
+    {
+        $a = new RemoteLock();
+        $b = new RemoteLock();
+
+        $a->acquire('foo');
+        $a->expectWithin('1s', 'ACQUIRED');
+
+        $b->acquire('foo');
+        $b->expectNothingAfter('1s');
+
+        $a->kill();
+        $b->expectWithin('1s', 'ACQUIRED');
+    }
 }

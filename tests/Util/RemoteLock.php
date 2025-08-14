@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Brick\Lock\Tests\Util;
 
 use InvalidArgumentException;
+use LogicException;
 use PHPUnit\Framework\Assert;
 use Symfony\Component\Process\InputStream;
 use Symfony\Component\Process\Process;
@@ -12,10 +13,11 @@ use Symfony\Component\Process\Process;
 /**
  * Sends commands to the worker operating in a separate process.
  */
-final readonly class RemoteLock
+final class RemoteLock
 {
-    private Process $process;
-    private InputStream $input;
+    private readonly Process $process;
+    private readonly InputStream $input;
+    private bool $isKilled = false;
 
     public function __construct()
     {
@@ -216,6 +218,12 @@ final readonly class RemoteLock
         }
     }
 
+    public function kill(): void
+    {
+        $this->process->stop(0);
+        $this->isKilled = true;
+    }
+
     /**
      * @param string[] $lockNames
      */
@@ -226,6 +234,10 @@ final readonly class RemoteLock
         int $taskDurationSeconds = 0,
         string $taskMessage = '',
     ): void {
+        if ($this->isKilled) {
+            throw new LogicException('Cannot send command after killing the remote lock.');
+        }
+
         $command = json_encode([
             'operation' => $operation,
             'lockNames' => $lockNames,
