@@ -1,5 +1,6 @@
 services:
   php:
+    container_name: ${COMPOSE_PROJECT_NAME}-php
     build:
       context: ./php
       args:
@@ -28,16 +29,19 @@ services:
       - no-new-privileges
 
   mysql:
+    container_name: ${COMPOSE_PROJECT_NAME}-mysql
     image: mysql:8
     environment:
       MYSQL_ROOT_PASSWORD: password
 
   mariadb:
+    container_name: ${COMPOSE_PROJECT_NAME}-mariadb
     image: mariadb:11
     environment:
       MARIADB_ROOT_PASSWORD: password
 
   postgres:
+    container_name: ${COMPOSE_PROJECT_NAME}-postgres
     image: postgres:17
     environment:
       POSTGRES_PASSWORD: password
