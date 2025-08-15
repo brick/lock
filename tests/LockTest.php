@@ -254,6 +254,24 @@ class LockTest extends TestCase
         $b->expectWithin('1s', 'ACQUIRED');
     }
 
+    public function testDeadlock(): void
+    {
+        $a = new RemoteLock();
+        $b = new RemoteLock();
+
+        $a->acquire('foo');
+        $a->expectWithin('1s', 'ACQUIRED');
+
+        $b->acquire('bar');
+        $b->expectWithin('1s', 'ACQUIRED');
+
+        $a->acquire('bar');
+        $a->expectNothingAfter('1s');
+
+        $b->acquire('foo');
+        $b->expectWithin('3s', 'LockAcquireException'); // postgres takes > 1s to detect deadlock
+    }
+
     public function testLockIsReleasedWhenConnectionIsClosed(): void
     {
         $a = new RemoteLock();
