@@ -1,10 +1,16 @@
+includes:
+    - vendor/cuyz/valinor/qa/PHPStan/valinor-phpstan-configuration.php
 parameters:
     level: 10
     checkUninitializedProperties: true
     paths:
         - src
-    excludePaths:
-        - vendor
+        - tests/Util
+        - tests/worker.php
     exceptions:
         check:
             missingCheckedExceptionInThrows: true
+    ignoreErrors:
+        - identifier: missingType.checkedException
+          paths:
+            - tests/Util

@@ -41,6 +41,7 @@ final readonly class SynchronizeReturn implements CommandInterface
             $exception = $e;
         }
 
+        /** @phpstan-ignore nullsafe.neverNull */
         $helper->writeSyncResult(true, $returnValue, $exception?->getMessage());
     }
 }
