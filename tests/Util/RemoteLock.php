@@ -36,14 +36,38 @@ final class RemoteLock
         $this->sendCommand(new Command\Acquire([$lockName]));
     }
 
+    /**
+     * @param non-empty-list<string> $lockNames
+     */
+    public function acquireMulti(array $lockNames): void
+    {
+        $this->sendCommand(new Command\Acquire($lockNames));
+    }
+
     public function tryAcquire(string $lockName): void
     {
         $this->sendCommand(new Command\TryAcquire([$lockName]));
     }
 
+    /**
+     * @param non-empty-list<string> $lockNames
+     */
+    public function tryAcquireMulti(array $lockNames): void
+    {
+        $this->sendCommand(new Command\TryAcquire($lockNames));
+    }
+
     public function tryAcquireWithTimeout(string $lockName, int $timeoutSeconds): void
     {
         $this->sendCommand(new Command\TryAcquireWithTimeout([$lockName], $timeoutSeconds));
+    }
+
+    /**
+     * @param non-empty-list<string> $lockNames
+     */
+    public function tryAcquireWithTimeoutMulti(array $lockNames, int $timeoutSeconds): void
+    {
+        $this->sendCommand(new Command\TryAcquireWithTimeout($lockNames, $timeoutSeconds));
     }
 
     public function release(?string $lockName = null): void
@@ -56,9 +80,25 @@ final class RemoteLock
         $this->sendCommand(new Command\Wait([$lockName]));
     }
 
+    /**
+     * @param non-empty-list<string> $lockNames
+     */
+    public function waitMulti(array $lockNames): void
+    {
+        $this->sendCommand(new Command\Wait($lockNames));
+    }
+
     public function tryWaitWithTimeout(string $lockName, int $timeoutSeconds): void
     {
         $this->sendCommand(new Command\TryWaitWithTimeout([$lockName], $timeoutSeconds));
+    }
+
+    /**
+     * @param non-empty-list<string> $lockNames
+     */
+    public function tryWaitWithTimeoutMulti(array $lockNames, int $timeoutSeconds): void
+    {
+        $this->sendCommand(new Command\TryWaitWithTimeout($lockNames, $timeoutSeconds));
     }
 
     public function synchronizeReturn(
