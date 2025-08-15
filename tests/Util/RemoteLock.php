@@ -27,120 +27,129 @@ final class RemoteLock
         $this->process->setInput($this->input);
         $this->process->start();
 
-        $this->sendCommand('ping');
+        $this->sendCommand(new Command\Ping());
         $this->expectWithin('1s', 'PONG');
     }
 
     public function acquire(string $lockName): void
     {
-        $this->sendCommand('acquire', [$lockName]);
+        $this->sendCommand(new Command\Acquire([$lockName]));
     }
 
     public function tryAcquire(string $lockName): void
     {
-        $this->sendCommand('tryAcquire', [$lockName]);
+        $this->sendCommand(new Command\TryAcquire([$lockName]));
     }
 
     public function tryAcquireWithTimeout(string $lockName, int $timeoutSeconds): void
     {
-        $this->sendCommand('tryAcquireWithTimeout', [$lockName], timeoutSeconds: $timeoutSeconds);
+        $this->sendCommand(new Command\TryAcquireWithTimeout([$lockName], $timeoutSeconds));
     }
 
-    public function release(string $lockName): void
+    public function release(?string $lockName = null): void
     {
-        $this->sendCommand('release', [$lockName]);
+        $this->sendCommand(new Command\Release($lockName));
     }
 
     public function wait(string $lockName): void
     {
-        $this->sendCommand('wait', [$lockName]);
+        $this->sendCommand(new Command\Wait([$lockName]));
     }
 
     public function tryWaitWithTimeout(string $lockName, int $timeoutSeconds): void
     {
-        $this->sendCommand('tryWaitWithTimeout', [$lockName], timeoutSeconds: $timeoutSeconds);
+        $this->sendCommand(new Command\TryWaitWithTimeout([$lockName], $timeoutSeconds));
     }
 
-    public function synchronizeReturningTask(
+    public function synchronizeReturn(
         string $lockName,
         int $taskDurationSeconds,
         string $taskReturnValue,
     ): void {
-        $this->sendCommand(
-            'synchronize_return',
+        $this->sendCommand(new Command\SynchronizeReturn(
             [$lockName],
-            taskDurationSeconds: $taskDurationSeconds,
-            taskMessage: $taskReturnValue,
-        );
+            $taskDurationSeconds,
+            $taskReturnValue,
+        ));
     }
 
-    public function synchronizeThrowingTask(
+    public function synchronizeThrow(
         string $lockName,
         int $taskDurationSeconds,
         string $taskExceptionMessage,
     ): void {
-        $this->sendCommand(
-            'synchronize_exception',
+        $this->sendCommand(new Command\SynchronizeThrow(
             [$lockName],
-            taskDurationSeconds: $taskDurationSeconds,
-            taskMessage: $taskExceptionMessage,
-        );
+            $taskDurationSeconds,
+            $taskExceptionMessage,
+        ));
     }
 
-    public function trySynchronizeReturningTask(
+    public function trySynchronizeReturn(
         string $lockName,
         int $taskDurationSeconds,
         string $taskReturnValue,
     ): void {
-        $this->sendCommand(
-            'trySynchronize_return',
+        $this->sendCommand(new Command\TrySynchronizeReturn(
             [$lockName],
-            taskDurationSeconds: $taskDurationSeconds,
-            taskMessage: $taskReturnValue,
-        );
+            $taskDurationSeconds,
+            $taskReturnValue,
+        ));
     }
 
-    public function trySynchronizeThrowingTask(
+    public function trySynchronizeThrow(
         string $lockName,
         int $taskDurationSeconds,
         string $taskExceptionMessage,
     ): void {
-        $this->sendCommand(
-            'trySynchronize_exception',
+        $this->sendCommand(new Command\TrySynchronizeThrow(
             [$lockName],
-            taskDurationSeconds: $taskDurationSeconds,
-            taskMessage: $taskExceptionMessage,
-        );
+            $taskDurationSeconds,
+            $taskExceptionMessage,
+        ));
     }
 
-    public function trySynchronizeWithTimeoutReturningTask(
+    public function trySynchronizeWithTimeoutReturn(
         string $lockName,
         int $timeoutSeconds,
         int $taskDurationSeconds,
         string $taskReturnValue,
     ): void {
-        $this->sendCommand(
-            'trySynchronizeWithTimeout_return',
+        $this->sendCommand(new Command\TrySynchronizeWithTimeoutReturn(
             [$lockName],
-            timeoutSeconds: $timeoutSeconds,
-            taskDurationSeconds: $taskDurationSeconds,
-            taskMessage: $taskReturnValue,
-        );
+            $timeoutSeconds,
+            $taskDurationSeconds,
+            $taskReturnValue,
+        ));
     }
 
-    public function trySynchronizeWithTimeoutThrowingTask(
+    public function trySynchronizeWithTimeoutThrow(
         string $lockName,
         int $timeoutSeconds,
         int $taskDurationSeconds,
         string $taskExceptionMessage,
     ): void {
-        $this->sendCommand(
-            'trySynchronizeWithTimeout_exception',
+        $this->sendCommand(new Command\TrySynchronizeWithTimeoutThrow(
             [$lockName],
-            timeoutSeconds: $timeoutSeconds,
-            taskDurationSeconds: $taskDurationSeconds,
-            taskMessage: $taskExceptionMessage,
-        );
+            $timeoutSeconds,
+            $taskDurationSeconds,
+            $taskExceptionMessage,
+        ));
+    }
+
+    public function beginTransaction(): void
+    {
+        $this->sendCommand(new Command\BeginTransaction());
+    }
+
+    public function commit(): void
+    {
+        $this->sendCommand(new Command\Commit());
+    }
+
+    public function rollBack(): void
+    {
+        $this->sendCommand(new Command\RollBack());
     }
 
     /**
@@ -181,21 +190,6 @@ final class RemoteLock
         }
 
         Assert::fail('Worker did not respond within ' . $duration);
-    }
-
-    public function beginTransaction(): void
-    {
-        $this->sendCommand('beginTransaction');
-    }
-
-    public function commit(): void
-    {
-        $this->sendCommand('commit');
-    }
-
-    public function rollBack(): void
-    {
-        $this->sendCommand('rollBack');
     }
 
     /**
@@ -239,27 +233,16 @@ final class RemoteLock
         $this->isKilled = true;
     }
 
-    /**
-     * @param string[] $lockNames
-     */
-    private function sendCommand(
-        string $operation,
-        array $lockNames = [],
-        int $timeoutSeconds = 0,
-        int $taskDurationSeconds = 0,
-        string $taskMessage = '',
-    ): void {
+    private function sendCommand(CommandInterface $command): void
+    {
         if ($this->isKilled) {
             throw new LogicException('Cannot send command after killing the remote lock.');
         }
 
         $command = json_encode([
-            'operation' => $operation,
-            'lockNames' => $lockNames,
-            'timeoutSeconds' => $timeoutSeconds,
-            'taskDurationSeconds' => $taskDurationSeconds,
-            'taskMessage' => $taskMessage,
-        ]);
+            'className' => $command::class,
+            'data' => $command,
+        ], flags: JSON_THROW_ON_ERROR);
 
         $this->input->write("$command\n");
     }

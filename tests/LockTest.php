@@ -136,10 +136,10 @@ class LockTest extends TestCase
         $a = new RemoteLock();
         $b = new RemoteLock();
 
-        $a->synchronizeReturningTask('foo', taskDurationSeconds: 3, taskReturnValue: 'FirstTaskSuccess');
+        $a->synchronizeReturn('foo', taskDurationSeconds: 3, taskReturnValue: 'FirstTaskSuccess');
         $a->expectNothingAfter('1s');
 
-        $b->synchronizeReturningTask('foo', taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
+        $b->synchronizeReturn('foo', taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
         $b->expectNothingAfter('1s');
 
         $a->expectWithin('2s', 'SYNC_LOCK_SUCCESS;RETURN:FirstTaskSuccess');
@@ -151,10 +151,10 @@ class LockTest extends TestCase
         $a = new RemoteLock();
         $b = new RemoteLock();
 
-        $a->synchronizeThrowingTask('foo', taskDurationSeconds: 3, taskExceptionMessage: 'FirstTaskError');
+        $a->synchronizeThrow('foo', taskDurationSeconds: 3, taskExceptionMessage: 'FirstTaskError');
         $a->expectNothingAfter('1s');
 
-        $b->synchronizeReturningTask('foo', taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
+        $b->synchronizeReturn('foo', taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
         $b->expectNothingAfter('1s');
 
         $a->expectWithin('2s', 'SYNC_LOCK_SUCCESS;EXCEPTION:FirstTaskError');
@@ -166,15 +166,15 @@ class LockTest extends TestCase
         $a = new RemoteLock();
         $b = new RemoteLock();
 
-        $a->trySynchronizeReturningTask('foo', taskDurationSeconds: 2, taskReturnValue: 'FirstTaskSuccess');
+        $a->trySynchronizeReturn('foo', taskDurationSeconds: 2, taskReturnValue: 'FirstTaskSuccess');
         $a->expectNothingAfter('1s');
 
-        $b->trySynchronizeReturningTask('foo', taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
+        $b->trySynchronizeReturn('foo', taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
         $b->expectWithin('1s', 'SYNC_LOCK_FAILURE');
 
         $a->expectWithin('2s', 'SYNC_LOCK_SUCCESS;RETURN:FirstTaskSuccess');
 
-        $b->trySynchronizeReturningTask('foo', taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
+        $b->trySynchronizeReturn('foo', taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
         $b->expectWithin('1s', 'SYNC_LOCK_SUCCESS;RETURN:SecondTaskSuccess');
     }
 
@@ -183,15 +183,15 @@ class LockTest extends TestCase
         $a = new RemoteLock();
         $b = new RemoteLock();
 
-        $a->trySynchronizeThrowingTask('foo', taskDurationSeconds: 2, taskExceptionMessage: 'FirstTaskError');
+        $a->trySynchronizeThrow('foo', taskDurationSeconds: 2, taskExceptionMessage: 'FirstTaskError');
         $a->expectNothingAfter('1s');
 
-        $b->trySynchronizeReturningTask('foo', taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
+        $b->trySynchronizeReturn('foo', taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
         $b->expectWithin('1s', 'SYNC_LOCK_FAILURE');
 
         $a->expectWithin('2s', 'SYNC_LOCK_SUCCESS;EXCEPTION:FirstTaskError');
 
-        $b->trySynchronizeReturningTask('foo', taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
+        $b->trySynchronizeReturn('foo', taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
         $b->expectWithin('1s', 'SYNC_LOCK_SUCCESS;RETURN:SecondTaskSuccess');
     }
 
@@ -200,16 +200,16 @@ class LockTest extends TestCase
         $a = new RemoteLock();
         $b = new RemoteLock();
 
-        $a->trySynchronizeWithTimeoutReturningTask('foo', timeoutSeconds: 1, taskDurationSeconds: 4, taskReturnValue: 'FirstTaskSuccess');
+        $a->trySynchronizeWithTimeoutReturn('foo', timeoutSeconds: 1, taskDurationSeconds: 4, taskReturnValue: 'FirstTaskSuccess');
         $a->expectNothingAfter('1s');
 
-        $b->trySynchronizeWithTimeoutReturningTask('foo', timeoutSeconds: 2, taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
+        $b->trySynchronizeWithTimeoutReturn('foo', timeoutSeconds: 2, taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
         $b->expectNothingAfter('1s');
         $b->expectWithin('2s', 'SYNC_LOCK_FAILURE');
 
         $a->expectWithin('2s', 'SYNC_LOCK_SUCCESS;RETURN:FirstTaskSuccess');
 
-        $b->trySynchronizeWithTimeoutReturningTask('foo', timeoutSeconds: 1, taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
+        $b->trySynchronizeWithTimeoutReturn('foo', timeoutSeconds: 1, taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
         $b->expectWithin('1s', 'SYNC_LOCK_SUCCESS;RETURN:SecondTaskSuccess');
     }
 
@@ -218,16 +218,16 @@ class LockTest extends TestCase
         $a = new RemoteLock();
         $b = new RemoteLock();
 
-        $a->trySynchronizeWithTimeoutThrowingTask('foo', timeoutSeconds: 1, taskDurationSeconds: 4, taskExceptionMessage: 'FirstTaskError');
+        $a->trySynchronizeWithTimeoutThrow('foo', timeoutSeconds: 1, taskDurationSeconds: 4, taskExceptionMessage: 'FirstTaskError');
         $a->expectNothingAfter('1s');
 
-        $b->trySynchronizeWithTimeoutReturningTask('foo', timeoutSeconds: 2, taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
+        $b->trySynchronizeWithTimeoutReturn('foo', timeoutSeconds: 2, taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
         $b->expectNothingAfter('1s');
         $b->expectWithin('2s', 'SYNC_LOCK_FAILURE');
 
         $a->expectWithin('2s', 'SYNC_LOCK_SUCCESS;EXCEPTION:FirstTaskError');
 
-        $b->trySynchronizeWithTimeoutReturningTask('foo', timeoutSeconds: 1, taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
+        $b->trySynchronizeWithTimeoutReturn('foo', timeoutSeconds: 1, taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
         $b->expectWithin('1s', 'SYNC_LOCK_SUCCESS;RETURN:SecondTaskSuccess');
     }
 
