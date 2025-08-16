@@ -3,11 +3,14 @@ parameters:
     checkUninitializedProperties: true
     paths:
         - src
-        - tests/Util
+        - tests
     exceptions:
         check:
             missingCheckedExceptionInThrows: true
     ignoreErrors:
         - identifier: missingType.checkedException
           paths:
-            - tests/Util
+            - tests
+        - identifier: missingType.iterableValue
+          paths:
+            - tests/*.php

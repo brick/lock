@@ -29,6 +29,7 @@ class PostgresHasherTest extends TestCase
     #[DataProvider('provideUnpackSigned32bit')]
     public function testUnpackSigned32bit(string $hex, int $expected): void
     {
+        /** @phpstan-ignore argument.type */
         self::assertSame($expected, PostgresHasher::unpackSigned32bit(hex2bin($hex)));
     }
 
