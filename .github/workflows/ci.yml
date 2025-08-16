@@ -5,7 +5,7 @@ on:
   pull_request:
 
 env:
-  PHPSTAN_PHP_VERSION: "8.4"
+  HIGHEST_PHP_VERSION: "8.4"
 
 jobs:
   phpstan:
@@ -19,10 +19,338 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ env.PHPSTAN_PHP_VERSION }}
+          php-version: ${{ env.HIGHEST_PHP_VERSION }}
 
       - name: Install composer dependencies
         uses: ramsey/composer-install@v3
 
       - name: Run PHPStan
         run: vendor/bin/phpstan --no-progress
+
+  phpunit-mysql-pdo:
+    name: PHPUnit MySQL / PDO
+    runs-on: ubuntu-22.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - "8.2"
+          - "8.3"
+          - "8.4"
+        pdo-emulate-prepares:
+          - "OFF"
+        pdo-errmode:
+          - "EXCEPTION"
+        include:
+          - php-version: "8.4"
+            pdo-emulate-prepares: "ON"
+            pdo-errmode: "EXCEPTION"
+          - php-version: "8.4"
+            pdo-emulate-prepares: "OFF"
+            pdo-errmode: "SILENT"
+          - php-version: "8.4"
+            pdo-emulate-prepares: "OFF"
+            pdo-errmode: "WARNING"
+
+    services:
+      mysql:
+        image: mysql:8
+        ports:
+          - "3306:3306"
+        options: >-
+          --health-cmd "mysqladmin ping --silent"
+        env:
+          MYSQL_ROOT_PASSWORD: password
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: pdo_mysql
+          coverage: xdebug
+
+      - name: Install composer dependencies
+        uses: ramsey/composer-install@v3
+
+      - name: Run PHPUnit
+        run: vendor/bin/phpunit
+        env:
+          DRIVER: mysql_pdo
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_USER: root
+          MYSQL_PASSWORD: password
+          PDO_EMULATE_PREPARES: ${{ matrix.pdo-emulate-prepares }}
+          PDO_ERRMODE: ${{ matrix.pdo-errmode }}
+        if: ${{ matrix.php-version != env.HIGHEST_PHP_VERSION }}
+
+      - name: Run PHPUnit with coverage
+        run: |
+          mkdir -p build/logs
+          vendor/bin/phpunit --coverage-clover build/logs/clover.xml
+        env:
+          DRIVER: mysql_pdo
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_USER: root
+          MYSQL_PASSWORD: password
+          PDO_EMULATE_PREPARES: ${{ matrix.pdo-emulate-prepares }}
+          PDO_ERRMODE: ${{ matrix.pdo-errmode }}
+        if: ${{ matrix.php-version == env.HIGHEST_PHP_VERSION }}
+
+      - name: Upload coverage report to Coveralls
+        run: vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml -v
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ matrix.php-version == env.HIGHEST_PHP_VERSION }}
+
+  phpunit-mysql-doctrine:
+    name: PHPUnit MySQL / Doctrine
+    runs-on: ubuntu-22.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        deps:
+          - "highest"
+        php-version:
+          - "8.4"
+        include:
+          - php-version: "8.2"
+            deps: "lowest"
+
+    services:
+      mysql:
+        image: mysql:8
+        ports:
+          - "3306:3306"
+        options: >-
+          --health-cmd "mysqladmin ping --silent"
+        env:
+          MYSQL_ROOT_PASSWORD: password
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: pdo_mysql
+          coverage: xdebug
+
+      - name: Install composer dependencies
+        uses: ramsey/composer-install@v3
+        with:
+          dependency-versions: ${{ matrix.deps }}
+
+      - name: Run PHPUnit with coverage
+        run: |
+          mkdir -p build/logs
+          vendor/bin/phpunit --coverage-clover build/logs/clover.xml
+        env:
+          DRIVER: mysql_doctrine
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_USER: root
+          MYSQL_PASSWORD: password
+
+      - name: Upload coverage report to Coveralls
+        run: vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml -v
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  phpunit-mariadb-pdo:
+    name: PHPUnit MariaDB / PDO
+    runs-on: ubuntu-22.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - "8.4"
+
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: password
+        options: >-
+          --health-cmd "mariadb-admin ping --silent --user=root --password=password"
+        ports:
+          - "3306:3306"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: pdo_mysql
+          coverage: xdebug
+
+      - name: Install composer dependencies
+        uses: ramsey/composer-install@v3
+
+      - name: Run PHPUnit with coverage
+        run: |
+          mkdir -p build/logs
+          vendor/bin/phpunit --coverage-clover build/logs/clover.xml
+        env:
+          DRIVER: mariadb_pdo
+          MARIADB_HOST: 127.0.0.1
+          MARIADB_USER: root
+          MARIADB_PASSWORD: password
+
+      - name: Upload coverage report to Coveralls
+        run: vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml -v
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  phpunit-mariadb-doctrine:
+    name: PHPUnit MariaDB / Doctrine
+    runs-on: ubuntu-22.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - "8.4"
+
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: password
+        options: >-
+          --health-cmd "mariadb-admin ping --silent --user=root --password=password"
+        ports:
+          - "3306:3306"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: pdo_mysql
+          coverage: xdebug
+
+      - name: Install composer dependencies
+        uses: ramsey/composer-install@v3
+
+      - name: Run PHPUnit with coverage
+        run: |
+          mkdir -p build/logs
+          vendor/bin/phpunit --coverage-clover build/logs/clover.xml
+        env:
+          DRIVER: mariadb_doctrine
+          MARIADB_HOST: 127.0.0.1
+          MARIADB_USER: root
+          MARIADB_PASSWORD: password
+
+      - name: Upload coverage report to Coveralls
+        run: vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml -v
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  phpunit-postgres-pdo:
+    name: PHPUnit Postgres / PDO
+    runs-on: ubuntu-22.04
+
+    strategy:
+      matrix:
+        php-version:
+          - "8.4"
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - "5432:5432"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: pdo_pgsql
+          coverage: xdebug
+
+      - name: Install composer dependencies
+        uses: ramsey/composer-install@v3
+
+      - name: Run PHPUnit with coverage
+        run: |
+          mkdir -p build/logs
+          vendor/bin/phpunit --coverage-clover build/logs/clover.xml
+        env:
+          DRIVER: postgres_pdo
+          POSTGRES_HOST: 127.0.0.1
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+
+      - name: Upload coverage report to Coveralls
+        run: vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml -v
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  phpunit-postgres-doctrine:
+    name: PHPUnit Postgres / Doctrine
+    runs-on: ubuntu-22.04
+
+    strategy:
+      matrix:
+        php-version:
+          - "8.4"
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - "5432:5432"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: pdo_pgsql
+          coverage: xdebug
+
+      - name: Install composer dependencies
+        uses: ramsey/composer-install@v3
+
+      - name: Run PHPUnit with coverage
+        run: |
+          mkdir -p build/logs
+          vendor/bin/phpunit --coverage-clover build/logs/clover.xml
+        env:
+          DRIVER: postgres_doctrine
+          POSTGRES_HOST: 127.0.0.1
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+
+      - name: Upload coverage report to Coveralls
+        run: vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml -v
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}

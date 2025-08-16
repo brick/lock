@@ -17,7 +17,8 @@
         "phpstan/phpstan": "2.1.22",
         "phpunit/phpunit": "^11.5",
         "symfony/process": "^7.3",
-        "opis/closure": "^4.3"
+        "opis/closure": "^4.3",
+        "php-coveralls/php-coveralls": "^2.8"
     },
     "conflict": {
         "doctrine/dbal": "<3.0 || >=5.0"
