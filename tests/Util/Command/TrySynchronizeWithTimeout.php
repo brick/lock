@@ -7,15 +7,18 @@ namespace Brick\Lock\Tests\Util\Command;
 use Brick\Lock\Exception\LockAcquireException;
 use Brick\Lock\Tests\Util\CommandInterface;
 use Brick\Lock\Tests\Util\LockContext;
+use Closure;
 use Exception;
 
-final readonly class TrySynchronizeWithTimeoutReturn implements CommandInterface
+final readonly class TrySynchronizeWithTimeout implements CommandInterface
 {
+    /**
+     * @param Closure(): string $task
+     */
     public function __construct(
         public int $lockIndex,
         public int $timeoutSeconds,
-        public int $taskDurationSeconds,
-        public string $taskReturnValue,
+        public Closure $task,
     ) {
     }
 
@@ -27,11 +30,7 @@ final readonly class TrySynchronizeWithTimeoutReturn implements CommandInterface
         $exception = null;
 
         try {
-            $synchronizeSuccess = $lock->trySynchronizeWithTimeout($this->timeoutSeconds, function() {
-                sleep($this->taskDurationSeconds);
-
-                return $this->taskReturnValue;
-            });
+            $synchronizeSuccess = $lock->trySynchronizeWithTimeout($this->timeoutSeconds, $this->task);
             $returnValue = $synchronizeSuccess?->returnValue;
             $isLockSuccess = $synchronizeSuccess !== null;
         } catch (Exception $e) {

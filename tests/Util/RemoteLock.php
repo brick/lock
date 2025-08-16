@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Brick\Lock\Tests\Util;
 
+use Closure;
+
 /**
  * Represents a lock on the remote worker.
  * Contrary to the methods on LockInterface, these methods are not synchronous.
@@ -46,73 +48,18 @@ final readonly class RemoteLock
         $this->client->sendCommand(new Command\TryWaitWithTimeout($this->lockIndex, $seconds));
     }
 
-    public function synchronizeReturn(
-        int $taskDurationSeconds,
-        string $taskReturnValue,
-    ): void {
-        $this->client->sendCommand(new Command\SynchronizeReturn(
-            $this->lockIndex,
-            $taskDurationSeconds,
-            $taskReturnValue,
-        ));
+    public function synchronize(Closure $task): void
+    {
+        $this->client->sendCommand(new Command\Synchronize($this->lockIndex, $task));
     }
 
-    public function synchronizeThrow(
-        int $taskDurationSeconds,
-        string $taskExceptionMessage,
-    ): void {
-        $this->client->sendCommand(new Command\SynchronizeThrow(
-            $this->lockIndex,
-            $taskDurationSeconds,
-            $taskExceptionMessage,
-        ));
+    public function trySynchronize(Closure $task): void
+    {
+        $this->client->sendCommand(new Command\TrySynchronize($this->lockIndex, $task));
     }
 
-    public function trySynchronizeReturn(
-        int $taskDurationSeconds,
-        string $taskReturnValue,
-    ): void {
-        $this->client->sendCommand(new Command\TrySynchronizeReturn(
-            $this->lockIndex,
-            $taskDurationSeconds,
-            $taskReturnValue,
-        ));
-    }
-
-    public function trySynchronizeThrow(
-        int $taskDurationSeconds,
-        string $taskExceptionMessage,
-    ): void {
-        $this->client->sendCommand(new Command\TrySynchronizeThrow(
-            $this->lockIndex,
-            $taskDurationSeconds,
-            $taskExceptionMessage,
-        ));
-    }
-
-    public function trySynchronizeWithTimeoutReturn(
-        int $timeoutSeconds,
-        int $taskDurationSeconds,
-        string $taskReturnValue,
-    ): void {
-        $this->client->sendCommand(new Command\TrySynchronizeWithTimeoutReturn(
-            $this->lockIndex,
-            $timeoutSeconds,
-            $taskDurationSeconds,
-            $taskReturnValue,
-        ));
-    }
-
-    public function trySynchronizeWithTimeoutThrow(
-        int $timeoutSeconds,
-        int $taskDurationSeconds,
-        string $taskExceptionMessage,
-    ): void {
-        $this->client->sendCommand(new Command\TrySynchronizeWithTimeoutThrow(
-            $this->lockIndex,
-            $timeoutSeconds,
-            $taskDurationSeconds,
-            $taskExceptionMessage,
-        ));
+    public function trySynchronizeWithTimeout(int $timeoutSeconds, Closure $task): void
+    {
+        $this->client->sendCommand(new Command\TrySynchronizeWithTimeout($this->lockIndex, $timeoutSeconds, $task));
     }
 }

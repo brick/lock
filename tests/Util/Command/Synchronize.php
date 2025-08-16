@@ -6,14 +6,17 @@ namespace Brick\Lock\Tests\Util\Command;
 
 use Brick\Lock\Tests\Util\CommandInterface;
 use Brick\Lock\Tests\Util\LockContext;
+use Closure;
 use Exception;
 
-final readonly class SynchronizeReturn implements CommandInterface
+final readonly class Synchronize implements CommandInterface
 {
+    /**
+     * @param Closure(): string $task
+     */
     public function __construct(
         public int $lockIndex,
-        public int $taskDurationSeconds,
-        public string $taskReturnValue,
+        public Closure $task,
     ) {
     }
 
@@ -25,11 +28,7 @@ final readonly class SynchronizeReturn implements CommandInterface
         $exception = null;
 
         try {
-            $returnValue = $lock->synchronize(function() {
-                sleep($this->taskDurationSeconds);
-
-                return $this->taskReturnValue;
-            });
+            $returnValue = $lock->synchronize($this->task);
         } catch (Exception $e) {
             $exception = $e;
         }

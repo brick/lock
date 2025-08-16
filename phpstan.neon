@@ -1,5 +1,3 @@
-includes:
-    - vendor/cuyz/valinor/qa/PHPStan/valinor-phpstan-configuration.php
 parameters:
     level: 10
     checkUninitializedProperties: true

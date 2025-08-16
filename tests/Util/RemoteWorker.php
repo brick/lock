@@ -10,6 +10,8 @@ use PHPUnit\Framework\Assert;
 use Symfony\Component\Process\InputStream;
 use Symfony\Component\Process\Process;
 
+use function Opis\Closure\serialize;
+
 /**
  * Sends commands to the worker operating in a separate process.
  */
@@ -74,10 +76,8 @@ final class RemoteWorker
             throw new LogicException('Cannot send command after killing the remote lock.');
         }
 
-        $command = json_encode([
-            'className' => $command::class,
-            'data' => $command,
-        ], flags: JSON_THROW_ON_ERROR);
+        // Serialize using Opis Closure for closure support + JSON for one-line output.
+        $command = json_encode(serialize($command), flags: JSON_THROW_ON_ERROR);
 
         $this->input->write("$command\n");
     }

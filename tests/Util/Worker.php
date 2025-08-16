@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Brick\Lock\Tests\Util;
 
 use Brick\Lock\Exception\LockException;
-use CuyZ\Valinor\MapperBuilder;
+use LogicException;
+
+use function Opis\Closure\unserialize;
 
 /**
  * Executed in a separate process; receives lock commands from the test suite via STDIN and executes them.
@@ -29,23 +31,17 @@ class Worker
         );
 
         while (($line = fgets(STDIN)) !== false) {
-            /** @var object{className: string, data: array<string, mixed>} $message */
-            $message = json_decode($line, associative: true, flags: JSON_THROW_ON_ERROR);
+            $serializedCommand = json_decode($line, associative: true, flags: JSON_THROW_ON_ERROR);
 
-            $mapper = (new MapperBuilder())->allowPermissiveTypes()->mapper();
-            $message = $mapper->map(
-                'array{
-                    className: class-string<Brick\Lock\Tests\Util\CommandInterface>,
-                    data: array<string, mixed>
-                }',
-                $message,
-            );
+            if (! is_string($serializedCommand)) {
+                throw new LogicException('Expected string, got ' . get_debug_type($serializedCommand));
+            }
 
-            $mapper = (new MapperBuilder())->mapper();
-            $command = $mapper->map(
-                $message['className'],
-                $message['data'],
-            );
+            $command = unserialize($serializedCommand);
+
+            if (! $command instanceof CommandInterface) {
+                throw new LogicException('Expected CommandInterface, got ' . get_debug_type($command));
+            }
 
             try {
                 $command->execute($helper);
