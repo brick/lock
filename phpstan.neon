@@ -4,7 +4,6 @@ parameters:
     paths:
         - src
         - tests/Util
-        - tests/worker.php
     exceptions:
         check:
             missingCheckedExceptionInThrows: true

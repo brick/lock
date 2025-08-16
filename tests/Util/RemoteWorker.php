@@ -23,7 +23,7 @@ final class RemoteWorker
 
     public function __construct()
     {
-        $this->process = new Process(['php', 'worker.php'], __DIR__ . '/..');
+        $this->process = new Process(['php', 'worker.php'], __DIR__);
         $this->input = new InputStream();
 
         $this->process->setInput($this->input);
