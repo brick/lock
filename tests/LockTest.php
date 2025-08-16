@@ -4,142 +4,167 @@ declare(strict_types=1);
 
 namespace Brick\Lock\Tests;
 
-use Brick\Lock\Tests\Util\RemoteLock;
+use Brick\Lock\Tests\Util\RemoteWorker;
 use PHPUnit\Framework\TestCase;
 
 class LockTest extends TestCase
 {
     public function testAcquire(): void
     {
-        $a = new RemoteLock();
-        $b = new RemoteLock();
+        $a = new RemoteWorker();
+        $b = new RemoteWorker();
 
-        $a->acquire('foo');
+        $aFoo = $a->createLock('foo');
+        $aBar = $a->createLock('bar');
+        $bFoo = $b->createLock('foo');
+        $bBar = $b->createLock('bar');
+
+        $aFoo->acquire();
         $a->expectWithin('1s', 'ACQUIRED');
 
-        $b->acquire('bar');
+        $bBar->acquire();
         $b->expectWithin('1s', 'ACQUIRED');
 
-        $b->acquire('foo');
+        $bFoo->acquire();
         $b->expectNothingAfter('1s');
 
-        $a->release('foo');
+        $aFoo->release();
         $a->expectWithin('1s', 'RELEASED');
         $b->expectWithin('1s', 'ACQUIRED');
 
-        $a->acquire('bar');
-        $b->expectNothingAfter('1s');
+        $aBar->acquire();
+        $a->expectNothingAfter('1s');
 
-        $b->release('bar');
+        $bBar->release();
         $b->expectWithin('1s', 'RELEASED');
         $a->expectWithin('1s', 'ACQUIRED');
     }
 
     public function testTryAcquire(): void
     {
-        $a = new RemoteLock();
-        $b = new RemoteLock();
+        $a = new RemoteWorker();
+        $b = new RemoteWorker();
 
-        $a->acquire('foo');
+        $aFoo = $a->createLock('foo');
+        $bFoo = $b->createLock('foo');
+
+        $aFoo->acquire();
         $a->expectWithin('1s', 'ACQUIRED');
 
-        $b->tryAcquire('foo');
+        $bFoo->tryAcquire();
         $b->expectWithin('1s', 'NOT_ACQUIRED');
 
-        $a->release('foo');
+        $aFoo->release();
         $a->expectWithin('1s', 'RELEASED');
 
-        $b->tryAcquire('foo');
+        $bFoo->tryAcquire();
         $b->expectWithin('1s', 'ACQUIRED');
     }
 
     public function testTryAcquireWithTimeout(): void
     {
-        $a = new RemoteLock();
-        $b = new RemoteLock();
+        $a = new RemoteWorker();
+        $b = new RemoteWorker();
 
-        $a->acquire('foo');
+        $aFoo = $a->createLock('foo');
+        $bFoo = $b->createLock('foo');
+
+        $aFoo->acquire();
         $a->expectWithin('1s', 'ACQUIRED');
 
-        $b->tryAcquireWithTimeout('foo', timeoutSeconds: 2);
+        $bFoo->tryAcquireWithTimeout(seconds: 2);
         $b->expectNothingAfter('1s');
         $b->expectWithin('2s', 'NOT_ACQUIRED');
 
-        $a->release('foo');
+        $aFoo->release();
         $a->expectWithin('1s', 'RELEASED');
 
-        $b->tryAcquire('foo');
+        $bFoo->tryAcquire();
         $b->expectWithin('1s', 'ACQUIRED');
     }
 
     public function testReleaseWithoutAcquire(): void
     {
-        $a = new RemoteLock();
+        $a = new RemoteWorker();
 
-        $a->release('foo');
+        $aFoo = $a->createLock('foo');
+
+        $aFoo->release();
         $a->expectWithin('1s', 'LockReleaseException');
     }
 
     public function testReleaseLockAcquiredByAnotherProcess(): void
     {
-        $a = new RemoteLock();
-        $b = new RemoteLock();
+        $a = new RemoteWorker();
+        $b = new RemoteWorker();
 
-        $a->acquire('foo');
+        $aFoo = $a->createLock('foo');
+        $bFoo = $b->createLock('foo');
+
+        $aFoo->acquire();
         $a->expectWithin('1s', 'ACQUIRED');
 
-        $b->release('foo');
+        $bFoo->release();
         $b->expectWithin('1s', 'LockReleaseException');
     }
 
     public function testWait(): void
     {
-        $a = new RemoteLock();
-        $b = new RemoteLock();
+        $a = new RemoteWorker();
+        $b = new RemoteWorker();
 
-        $a->acquire('foo');
+        $aFoo = $a->createLock('foo');
+        $bFoo = $b->createLock('foo');
+
+        $aFoo->acquire();
         $a->expectWithin('1s', 'ACQUIRED');
 
-        $b->wait('foo');
+        $bFoo->wait();
         $b->expectNothingAfter('1s');
 
-        $a->release('foo');
+        $aFoo->release();
         $a->expectWithin('1s', 'RELEASED');
         $b->expectWithin('1s', 'WAIT_SUCCESS');
 
         // b should not hold the lock after wait()
-        $a->acquire('foo');
+        $aFoo->acquire();
         $a->expectWithin('1s', 'ACQUIRED');
     }
 
     public function testTryWaitWithTimeout(): void
     {
-        $a = new RemoteLock();
-        $b = new RemoteLock();
+        $a = new RemoteWorker();
+        $b = new RemoteWorker();
 
-        $a->acquire('foo');
+        $aFoo = $a->createLock('foo');
+        $bFoo = $b->createLock('foo');
+
+        $aFoo->acquire();
         $a->expectWithin('1s', 'ACQUIRED');
 
-        $b->tryWaitWithTimeout('foo', timeoutSeconds: 2);
+        $bFoo->tryWaitWithTimeout(seconds: 2);
         $b->expectNothingAfter('1s');
         $b->expectWithin('2s', 'WAIT_FAILURE');
 
-        $a->release('foo');
+        $aFoo->release();
         $a->expectWithin('1s', 'RELEASED');
 
-        $b->tryWaitWithTimeout('foo', timeoutSeconds: 2);
+        $bFoo->tryWaitWithTimeout(seconds: 2);
         $b->expectWithin('1s', 'WAIT_SUCCESS');
     }
 
     public function testSynchronizeReturningTask(): void
     {
-        $a = new RemoteLock();
-        $b = new RemoteLock();
+        $a = new RemoteWorker();
+        $b = new RemoteWorker();
 
-        $a->synchronizeReturn('foo', taskDurationSeconds: 3, taskReturnValue: 'FirstTaskSuccess');
+        $aFoo = $a->createLock('foo');
+        $bFoo = $b->createLock('foo');
+
+        $aFoo->synchronizeReturn(taskDurationSeconds: 3, taskReturnValue: 'FirstTaskSuccess');
         $a->expectNothingAfter('1s');
 
-        $b->synchronizeReturn('foo', taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
+        $bFoo->synchronizeReturn(taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
         $b->expectNothingAfter('1s');
 
         $a->expectWithin('2s', 'SYNC_LOCK_SUCCESS;RETURN:FirstTaskSuccess');
@@ -148,13 +173,16 @@ class LockTest extends TestCase
 
     public function testSynchronizeThrowingTask(): void
     {
-        $a = new RemoteLock();
-        $b = new RemoteLock();
+        $a = new RemoteWorker();
+        $b = new RemoteWorker();
 
-        $a->synchronizeThrow('foo', taskDurationSeconds: 3, taskExceptionMessage: 'FirstTaskError');
+        $aFoo = $a->createLock('foo');
+        $bFoo = $b->createLock('foo');
+
+        $aFoo->synchronizeThrow(taskDurationSeconds: 3, taskExceptionMessage: 'FirstTaskError');
         $a->expectNothingAfter('1s');
 
-        $b->synchronizeReturn('foo', taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
+        $bFoo->synchronizeReturn(taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
         $b->expectNothingAfter('1s');
 
         $a->expectWithin('2s', 'SYNC_LOCK_SUCCESS;EXCEPTION:FirstTaskError');
@@ -163,124 +191,147 @@ class LockTest extends TestCase
 
     public function testTrySynchronizeReturningTask(): void
     {
-        $a = new RemoteLock();
-        $b = new RemoteLock();
+        $a = new RemoteWorker();
+        $b = new RemoteWorker();
 
-        $a->trySynchronizeReturn('foo', taskDurationSeconds: 2, taskReturnValue: 'FirstTaskSuccess');
+        $aFoo = $a->createLock('foo');
+        $bFoo = $b->createLock('foo');
+
+        $aFoo->trySynchronizeReturn(taskDurationSeconds: 2, taskReturnValue: 'FirstTaskSuccess');
         $a->expectNothingAfter('1s');
 
-        $b->trySynchronizeReturn('foo', taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
+        $bFoo->trySynchronizeReturn(taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
         $b->expectWithin('1s', 'SYNC_LOCK_FAILURE');
 
         $a->expectWithin('2s', 'SYNC_LOCK_SUCCESS;RETURN:FirstTaskSuccess');
 
-        $b->trySynchronizeReturn('foo', taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
+        $bFoo->trySynchronizeReturn(taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
         $b->expectWithin('1s', 'SYNC_LOCK_SUCCESS;RETURN:SecondTaskSuccess');
     }
 
     public function testTrySynchronizeThrowingTask(): void
     {
-        $a = new RemoteLock();
-        $b = new RemoteLock();
+        $a = new RemoteWorker();
+        $b = new RemoteWorker();
 
-        $a->trySynchronizeThrow('foo', taskDurationSeconds: 2, taskExceptionMessage: 'FirstTaskError');
+        $aFoo = $a->createLock('foo');
+        $bFoo = $b->createLock('foo');
+
+        $aFoo->trySynchronizeThrow(taskDurationSeconds: 2, taskExceptionMessage: 'FirstTaskError');
         $a->expectNothingAfter('1s');
 
-        $b->trySynchronizeReturn('foo', taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
+        $bFoo->trySynchronizeReturn(taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
         $b->expectWithin('1s', 'SYNC_LOCK_FAILURE');
 
         $a->expectWithin('2s', 'SYNC_LOCK_SUCCESS;EXCEPTION:FirstTaskError');
 
-        $b->trySynchronizeReturn('foo', taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
+        $bFoo->trySynchronizeReturn(taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
         $b->expectWithin('1s', 'SYNC_LOCK_SUCCESS;RETURN:SecondTaskSuccess');
     }
 
     public function testTrySynchronizeWithTimeoutReturningTask(): void
     {
-        $a = new RemoteLock();
-        $b = new RemoteLock();
+        $a = new RemoteWorker();
+        $b = new RemoteWorker();
 
-        $a->trySynchronizeWithTimeoutReturn('foo', timeoutSeconds: 1, taskDurationSeconds: 4, taskReturnValue: 'FirstTaskSuccess');
+        $aFoo = $a->createLock('foo');
+        $bFoo = $b->createLock('foo');
+
+        $aFoo->trySynchronizeWithTimeoutReturn(timeoutSeconds: 1, taskDurationSeconds: 4, taskReturnValue: 'FirstTaskSuccess');
         $a->expectNothingAfter('1s');
 
-        $b->trySynchronizeWithTimeoutReturn('foo', timeoutSeconds: 2, taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
+        $bFoo->trySynchronizeWithTimeoutReturn(timeoutSeconds: 2, taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
         $b->expectNothingAfter('1s');
         $b->expectWithin('2s', 'SYNC_LOCK_FAILURE');
 
         $a->expectWithin('2s', 'SYNC_LOCK_SUCCESS;RETURN:FirstTaskSuccess');
 
-        $b->trySynchronizeWithTimeoutReturn('foo', timeoutSeconds: 1, taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
+        $bFoo->trySynchronizeWithTimeoutReturn(timeoutSeconds: 1, taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
         $b->expectWithin('1s', 'SYNC_LOCK_SUCCESS;RETURN:SecondTaskSuccess');
     }
 
     public function testTrySynchronizeWithTimeoutThrowingTask(): void
     {
-        $a = new RemoteLock();
-        $b = new RemoteLock();
+        $a = new RemoteWorker();
+        $b = new RemoteWorker();
 
-        $a->trySynchronizeWithTimeoutThrow('foo', timeoutSeconds: 1, taskDurationSeconds: 4, taskExceptionMessage: 'FirstTaskError');
+        $aFoo = $a->createLock('foo');
+        $bFoo = $b->createLock('foo');
+
+        $aFoo->trySynchronizeWithTimeoutThrow(timeoutSeconds: 1, taskDurationSeconds: 4, taskExceptionMessage: 'FirstTaskError');
         $a->expectNothingAfter('1s');
 
-        $b->trySynchronizeWithTimeoutReturn('foo', timeoutSeconds: 2, taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
+        $bFoo->trySynchronizeWithTimeoutReturn(timeoutSeconds: 2, taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
         $b->expectNothingAfter('1s');
         $b->expectWithin('2s', 'SYNC_LOCK_FAILURE');
 
         $a->expectWithin('2s', 'SYNC_LOCK_SUCCESS;EXCEPTION:FirstTaskError');
 
-        $b->trySynchronizeWithTimeoutReturn('foo', timeoutSeconds: 1, taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
+        $bFoo->trySynchronizeWithTimeoutReturn(timeoutSeconds: 1, taskDurationSeconds: 0, taskReturnValue: 'SecondTaskSuccess');
         $b->expectWithin('1s', 'SYNC_LOCK_SUCCESS;RETURN:SecondTaskSuccess');
     }
 
     public function testLockIsReentrant(): void
     {
-        $a = new RemoteLock();
-        $b = new RemoteLock();
+        $a = new RemoteWorker();
+        $b = new RemoteWorker();
 
-        $a->acquire('foo');
+        $aFoo = $a->createLock('foo');
+        $bFoo = $b->createLock('foo');
+
+        $aFoo->acquire();
         $a->expectWithin('1s', 'ACQUIRED');
 
-        $b->acquire('foo');
+        $bFoo->acquire();
         $b->expectNothingAfter('1s');
 
-        $a->acquire('foo');
+        $aFoo->acquire();
         $a->expectWithin('1s', 'ACQUIRED');
 
-        $a->release('foo');
+        $aFoo->release();
         $a->expectWithin('1s', 'RELEASED');
         $b->expectNothingAfter('1s');
 
-        $a->release('foo');
+        $aFoo->release();
         $a->expectWithin('1s', 'RELEASED');
         $b->expectWithin('1s', 'ACQUIRED');
     }
 
     public function testDeadlock(): void
     {
-        $a = new RemoteLock();
-        $b = new RemoteLock();
+        $a = new RemoteWorker();
+        $b = new RemoteWorker();
 
-        $a->acquire('foo');
+        $aFoo = $a->createLock('foo');
+        $aBar = $a->createLock('bar');
+        $bFoo = $b->createLock('foo');
+        $bBar = $b->createLock('bar');
+
+        $aFoo->acquire();
         $a->expectWithin('1s', 'ACQUIRED');
 
-        $b->acquire('bar');
+        $bBar->acquire();
         $b->expectWithin('1s', 'ACQUIRED');
 
-        $a->acquire('bar');
+        $aBar->acquire();
         $a->expectNothingAfter('1s');
 
-        $b->acquire('foo');
+        $bFoo->acquire();
         $b->expectWithin('3s', 'LockAcquireException'); // postgres takes > 1s to detect deadlock
     }
 
     public function testLockIsReleasedWhenConnectionIsClosed(): void
     {
-        $a = new RemoteLock();
-        $b = new RemoteLock();
+        $a = new RemoteWorker();
+        $b = new RemoteWorker();
 
-        $a->acquire('foo');
+        $aFoo = $a->createLock('foo');
+        $bFoo = $b->createLock('foo');
+
+        $aFoo->acquire();
         $a->expectWithin('1s', 'ACQUIRED');
 
-        $b->acquire('foo');
+        $bFoo->acquire();
         $b->expectNothingAfter('1s');
 
         $a->kill();
@@ -289,13 +340,16 @@ class LockTest extends TestCase
 
     public function testStartingAndCommittingTransactionAfterLock(): void
     {
-        $a = new RemoteLock();
-        $b = new RemoteLock();
+        $a = new RemoteWorker();
+        $b = new RemoteWorker();
 
-        $a->acquire('foo');
+        $aFoo = $a->createLock('foo');
+        $bFoo = $b->createLock('foo');
+
+        $aFoo->acquire();
         $a->expectWithin('1s', 'ACQUIRED');
 
-        $b->acquire('foo');
+        $bFoo->acquire();
         $b->expectNothingAfter('1s');
 
         $a->beginTransaction();
@@ -306,20 +360,23 @@ class LockTest extends TestCase
         $a->expectWithin('1s', 'COMMIT');
         $b->expectNothingAfter('1s');
 
-        $a->release('foo');
+        $aFoo->release();
         $a->expectWithin('1s', 'RELEASED');
         $b->expectWithin('1s', 'ACQUIRED');
     }
 
     public function testStartingAndRollingBackTransactionAfterLock(): void
     {
-        $a = new RemoteLock();
-        $b = new RemoteLock();
+        $a = new RemoteWorker();
+        $b = new RemoteWorker();
 
-        $a->acquire('foo');
+        $aFoo = $a->createLock('foo');
+        $bFoo = $b->createLock('foo');
+
+        $aFoo->acquire();
         $a->expectWithin('1s', 'ACQUIRED');
 
-        $b->acquire('foo');
+        $bFoo->acquire();
         $b->expectNothingAfter('1s');
 
         $a->beginTransaction();
@@ -330,53 +387,59 @@ class LockTest extends TestCase
         $a->expectWithin('1s', 'ROLLBACK');
         $b->expectNothingAfter('1s');
 
-        $a->release('foo');
+        $aFoo->release();
         $a->expectWithin('1s', 'RELEASED');
         $b->expectWithin('1s', 'ACQUIRED');
     }
 
     public function testLockAcquiredDuringTransactionIsKeptAfterCommit(): void
     {
-        $a = new RemoteLock();
-        $b = new RemoteLock();
+        $a = new RemoteWorker();
+        $b = new RemoteWorker();
+
+        $aFoo = $a->createLock('foo');
+        $bFoo = $b->createLock('foo');
 
         $a->beginTransaction();
         $a->expectWithin('1s', 'BEGIN');
 
-        $a->acquire('foo');
+        $aFoo->acquire();
         $a->expectWithin('1s', 'ACQUIRED');
 
-        $b->acquire('foo');
+        $bFoo->acquire();
         $b->expectNothingAfter('1s');
 
         $a->commit();
         $a->expectWithin('1s', 'COMMIT');
         $b->expectNothingAfter('1s');
 
-        $a->release('foo');
+        $aFoo->release();
         $a->expectWithin('1s', 'RELEASED');
         $b->expectWithin('1s', 'ACQUIRED');
     }
 
     public function testLockAcquiredDuringTransactionIsKeptAfterRollback(): void
     {
-        $a = new RemoteLock();
-        $b = new RemoteLock();
+        $a = new RemoteWorker();
+        $b = new RemoteWorker();
+
+        $aFoo = $a->createLock('foo');
+        $bFoo = $b->createLock('foo');
 
         $a->beginTransaction();
         $a->expectWithin('1s', 'BEGIN');
 
-        $a->acquire('foo');
+        $aFoo->acquire();
         $a->expectWithin('1s', 'ACQUIRED');
 
-        $b->acquire('foo');
+        $bFoo->acquire();
         $b->expectNothingAfter('1s');
 
         $a->rollBack();
         $a->expectWithin('1s', 'ROLLBACK');
         $b->expectNothingAfter('1s');
 
-        $a->release('foo');
+        $aFoo->release();
         $a->expectWithin('1s', 'RELEASED');
         $b->expectWithin('1s', 'ACQUIRED');
     }

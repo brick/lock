@@ -5,28 +5,21 @@ declare(strict_types=1);
 namespace Brick\Lock\Tests\Util\Command;
 
 use Brick\Lock\Tests\Util\CommandInterface;
-use Brick\Lock\Tests\Util\LockHelper;
+use Brick\Lock\Tests\Util\LockContext;
 use Exception;
 
 final readonly class SynchronizeThrow implements CommandInterface
 {
-    /**
-     * @param non-empty-list<string> $lockNames
-     */
     public function __construct(
-        public array $lockNames,
+        public int $lockIndex,
         public int $taskDurationSeconds,
         public string $taskExceptionMessage,
     ) {
     }
 
-    public function execute(LockHelper $helper): void
+    public function execute(LockContext $context): void
     {
-        if (count($this->lockNames) === 1) {
-            $lock = $helper->lockFactory->createLock($this->lockNames[0]);
-        } else {
-            $lock = $helper->lockFactory->createMultiLock($this->lockNames);
-        }
+        $lock = $context->getLock($this->lockIndex);
 
         $returnValue = null;
         $exception = null;
@@ -42,6 +35,6 @@ final readonly class SynchronizeThrow implements CommandInterface
         }
 
         /** @phpstan-ignore nullsafe.neverNull */
-        $helper->writeSyncResult(true, $returnValue, $exception?->getMessage());
+        $context->writeSyncResult(true, $returnValue, $exception?->getMessage());
     }
 }

@@ -11,14 +11,21 @@ use Brick\Lock\LockFactoryInterface;
 use Brick\Lock\LockInterface;
 use LogicException;
 
-final class LockHelper
+/**
+ * Context for CommandInterface::execute().
+ *
+ * - Provides access to the lock driver, the connection and the lock factory;
+ * - Stores lock instances created by the lock factory;
+ * - Provides convenience methods to write to STDOUT.
+ */
+final class LockContext
 {
     public readonly LockFactoryInterface $lockFactory;
 
     /**
      * @var list<LockInterface>
      */
-    private array $lockStack = [];
+    private array $locks = [];
 
     public function __construct(
         public readonly LockDriverInterface $lockDriver,
@@ -27,20 +34,23 @@ final class LockHelper
         $this->lockFactory = new LockFactory($this->lockDriver);
     }
 
-    public function pushLock(LockInterface $lock): void
+    /**
+     * Adds a lock and returns its index.
+     */
+    public function addLock(LockInterface $lock): int
     {
-        $this->lockStack[] = $lock;
+        $this->locks[] = $lock;
+
+        return count($this->locks) - 1;
     }
 
-    public function popLock(): LockInterface
+    public function getLock(int $index): LockInterface
     {
-        $lock = array_pop($this->lockStack);
-
-        if ($lock === null) {
-            throw new LogicException('Lock stack is empty.');
+        if ($index >= count($this->locks)) {
+            throw new LogicException('Lock not found.');
         }
 
-        return $lock;
+        return $this->locks[$index];
     }
 
     public function write(string $message): void

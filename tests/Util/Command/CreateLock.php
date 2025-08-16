@@ -7,17 +7,17 @@ namespace Brick\Lock\Tests\Util\Command;
 use Brick\Lock\Tests\Util\CommandInterface;
 use Brick\Lock\Tests\Util\LockContext;
 
-final readonly class Release implements CommandInterface
+final readonly class CreateLock implements CommandInterface
 {
     public function __construct(
-        public int $lockIndex,
+        public string $lockName,
     ) {
     }
 
     public function execute(LockContext $context): void
     {
-        $lock = $context->getLock($this->lockIndex);
-        $lock->release();
-        $context->write('RELEASED');
+        $lock = $context->lockFactory->createLock($this->lockName);
+        $lockIndex = $context->addLock($lock);
+        $context->write('CREATED:' . $lockIndex);
     }
 }

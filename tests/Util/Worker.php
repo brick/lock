@@ -23,7 +23,7 @@ class Worker
             exit(1);
         }
 
-        $helper = new LockHelper(
+        $helper = new LockContext(
             $lockDriverWithInfo->lockDriver,
             $lockDriverWithInfo->connection,
         );

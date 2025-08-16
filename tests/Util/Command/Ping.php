@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Brick\Lock\Tests\Util\Command;
 
 use Brick\Lock\Tests\Util\CommandInterface;
-use Brick\Lock\Tests\Util\LockHelper;
+use Brick\Lock\Tests\Util\LockContext;
 
 final readonly class Ping implements CommandInterface
 {
-    public function execute(LockHelper $helper): void
+    public function execute(LockContext $context): void
     {
-        $helper->write('PONG');
+        $context->write('PONG');
     }
 }
