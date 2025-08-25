@@ -13,53 +13,53 @@ use Closure;
 final readonly class RemoteLock
 {
     public function __construct(
-        private RemoteWorker $client,
+        private RemoteWorker $worker,
         private int $lockIndex,
     ) {
     }
 
     public function acquire(): void
     {
-        $this->client->sendCommand(new Command\Acquire($this->lockIndex));
+        $this->worker->sendCommand(new Command\Acquire($this->lockIndex));
     }
 
     public function tryAcquire(): void
     {
-        $this->client->sendCommand(new Command\TryAcquire($this->lockIndex));
+        $this->worker->sendCommand(new Command\TryAcquire($this->lockIndex));
     }
 
     public function tryAcquireWithTimeout(int $seconds): void
     {
-        $this->client->sendCommand(new Command\TryAcquireWithTimeout($this->lockIndex, $seconds));
+        $this->worker->sendCommand(new Command\TryAcquireWithTimeout($this->lockIndex, $seconds));
     }
 
     public function release(): void
     {
-        $this->client->sendCommand(new Command\Release($this->lockIndex));
+        $this->worker->sendCommand(new Command\Release($this->lockIndex));
     }
 
     public function wait(): void
     {
-        $this->client->sendCommand(new Command\Wait($this->lockIndex));
+        $this->worker->sendCommand(new Command\Wait($this->lockIndex));
     }
 
     public function tryWaitWithTimeout(int $seconds): void
     {
-        $this->client->sendCommand(new Command\TryWaitWithTimeout($this->lockIndex, $seconds));
+        $this->worker->sendCommand(new Command\TryWaitWithTimeout($this->lockIndex, $seconds));
     }
 
     public function synchronize(Closure $task): void
     {
-        $this->client->sendCommand(new Command\Synchronize($this->lockIndex, $task));
+        $this->worker->sendCommand(new Command\Synchronize($this->lockIndex, $task));
     }
 
     public function trySynchronize(Closure $task): void
     {
-        $this->client->sendCommand(new Command\TrySynchronize($this->lockIndex, $task));
+        $this->worker->sendCommand(new Command\TrySynchronize($this->lockIndex, $task));
     }
 
     public function trySynchronizeWithTimeout(int $timeoutSeconds, Closure $task): void
     {
-        $this->client->sendCommand(new Command\TrySynchronizeWithTimeout($this->lockIndex, $timeoutSeconds, $task));
+        $this->worker->sendCommand(new Command\TrySynchronizeWithTimeout($this->lockIndex, $timeoutSeconds, $task));
     }
 }
