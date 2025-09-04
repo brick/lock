@@ -11,7 +11,7 @@ final readonly class Lock extends AbstractLock
 {
     public function __construct(
         private LockDriverInterface $driver,
-        private string              $lockName,
+        private string $lockName,
     ) {
     }
 

@@ -9,6 +9,11 @@ use Brick\Lock\Exception\LockReleaseException;
 use InvalidArgumentException;
 use Override;
 
+use function count;
+use function max;
+use function microtime;
+use function sort;
+
 final readonly class MultiLock extends AbstractLock
 {
     /**
@@ -23,7 +28,7 @@ final readonly class MultiLock extends AbstractLock
      */
     public function __construct(
         private LockDriverInterface $store,
-        array                       $lockNames,
+        array $lockNames,
     ) {
         if (count($lockNames) === 0) {
             throw new InvalidArgumentException('At least one lock name must be provided.');

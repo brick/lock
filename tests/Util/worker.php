@@ -12,6 +12,7 @@ use Brick\Lock\Tests\Util\CommandInterface;
 use Brick\Lock\Tests\Util\LockContext;
 use Brick\Lock\Tests\Util\LockDriverFactory;
 use Brick\Lock\Tests\Util\LockDriverFactoryException;
+
 use function Opis\Closure\unserialize;
 
 require __DIR__ . '/../../vendor/autoload.php';
@@ -46,7 +47,7 @@ while (($line = fgets(STDIN)) !== false) {
     try {
         $command->execute($helper);
     } catch (LockException $e) {
-        $shortName = (new \ReflectionClass($e))->getShortName();
+        $shortName = (new ReflectionClass($e))->getShortName();
         $helper->write($shortName);
     }
 }

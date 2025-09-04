@@ -6,6 +6,8 @@ namespace Brick\Lock\Exception;
 
 use Throwable;
 
+use function sprintf;
+
 /**
  * Exception thrown when a lock cannot be released due to an error.
  * The state of the lock is undefined after such an exception.

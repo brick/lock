@@ -13,6 +13,11 @@ use Closure;
 use Doctrine\DBAL\DriverManager;
 use PDO;
 
+use function array_keys;
+use function getenv;
+use function implode;
+use function sprintf;
+
 /**
  * Creates a lock driver from environment variables.
  */
@@ -271,7 +276,7 @@ final readonly class LockDriverFactory
     /**
      * @throws LockDriverFactoryException
      */
-    private static function getPdoEmulatePreparesEnv() : bool
+    private static function getPdoEmulatePreparesEnv(): bool
     {
         $emulatePrepares = self::getOptionalEnv('PDO_EMULATE_PREPARES') ?? 'OFF';
 
@@ -289,7 +294,7 @@ final readonly class LockDriverFactory
      *
      * @throws LockDriverFactoryException
      */
-    private static function getPdoErrmodeEnv() : int
+    private static function getPdoErrmodeEnv(): int
     {
         $errmode = self::getOptionalEnv('PDO_ERRMODE') ?? 'EXCEPTION';
 

@@ -10,6 +10,9 @@ use Override;
 use PDO;
 use PDOException;
 
+use function count;
+use function sprintf;
+
 /**
  * Wraps a PDO connection.
  */

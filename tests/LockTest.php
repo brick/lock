@@ -8,6 +8,8 @@ use Brick\Lock\Tests\Util\RemoteWorker;
 use Exception;
 use PHPUnit\Framework\TestCase;
 
+use function sleep;
+
 class LockTest extends TestCase
 {
     public function testAcquire(): void
@@ -162,10 +164,14 @@ class LockTest extends TestCase
         $aFoo = $a->createLock('foo');
         $bFoo = $b->createLock('foo');
 
-        $aFoo->synchronize(function() { sleep(3); return 'FirstTaskSuccess'; });
+        $aFoo->synchronize(function () {
+            sleep(3);
+
+            return 'FirstTaskSuccess';
+        });
         $a->expectNothingAfter('1s');
 
-        $bFoo->synchronize(fn() => 'SecondTaskSuccess');
+        $bFoo->synchronize(fn () => 'SecondTaskSuccess');
         $b->expectNothingAfter('1s');
 
         $a->expectWithin('2s', 'SYNC_LOCK_SUCCESS;RETURN:FirstTaskSuccess');
@@ -180,10 +186,14 @@ class LockTest extends TestCase
         $aFoo = $a->createLock('foo');
         $bFoo = $b->createLock('foo');
 
-        $aFoo->synchronize(function() { sleep(3); throw new Exception('FirstTaskError'); });
+        $aFoo->synchronize(function (): void {
+            sleep(3);
+
+            throw new Exception('FirstTaskError');
+        });
         $a->expectNothingAfter('1s');
 
-        $bFoo->synchronize(fn() => 'SecondTaskSuccess');
+        $bFoo->synchronize(fn () => 'SecondTaskSuccess');
         $b->expectNothingAfter('1s');
 
         $a->expectWithin('2s', 'SYNC_LOCK_SUCCESS;EXCEPTION:FirstTaskError');
@@ -198,15 +208,19 @@ class LockTest extends TestCase
         $aFoo = $a->createLock('foo');
         $bFoo = $b->createLock('foo');
 
-        $aFoo->trySynchronize(function() { sleep(2); return 'FirstTaskSuccess'; });
+        $aFoo->trySynchronize(function () {
+            sleep(2);
+
+            return 'FirstTaskSuccess';
+        });
         $a->expectNothingAfter('1s');
 
-        $bFoo->trySynchronize(fn() => 'SecondTaskSuccess');
+        $bFoo->trySynchronize(fn () => 'SecondTaskSuccess');
         $b->expectWithin('1s', 'SYNC_LOCK_FAILURE');
 
         $a->expectWithin('2s', 'SYNC_LOCK_SUCCESS;RETURN:FirstTaskSuccess');
 
-        $bFoo->trySynchronize(fn() => 'SecondTaskSuccess');
+        $bFoo->trySynchronize(fn () => 'SecondTaskSuccess');
         $b->expectWithin('1s', 'SYNC_LOCK_SUCCESS;RETURN:SecondTaskSuccess');
     }
 
@@ -218,15 +232,19 @@ class LockTest extends TestCase
         $aFoo = $a->createLock('foo');
         $bFoo = $b->createLock('foo');
 
-        $aFoo->trySynchronize(function() { sleep(2); throw new Exception('FirstTaskError'); });
+        $aFoo->trySynchronize(function (): void {
+            sleep(2);
+
+            throw new Exception('FirstTaskError');
+        });
         $a->expectNothingAfter('1s');
 
-        $bFoo->trySynchronize(fn() => 'SecondTaskSuccess');
+        $bFoo->trySynchronize(fn () => 'SecondTaskSuccess');
         $b->expectWithin('1s', 'SYNC_LOCK_FAILURE');
 
         $a->expectWithin('2s', 'SYNC_LOCK_SUCCESS;EXCEPTION:FirstTaskError');
 
-        $bFoo->trySynchronize(fn() => 'SecondTaskSuccess');
+        $bFoo->trySynchronize(fn () => 'SecondTaskSuccess');
         $b->expectWithin('1s', 'SYNC_LOCK_SUCCESS;RETURN:SecondTaskSuccess');
     }
 
@@ -238,16 +256,20 @@ class LockTest extends TestCase
         $aFoo = $a->createLock('foo');
         $bFoo = $b->createLock('foo');
 
-        $aFoo->trySynchronizeWithTimeout(1, function() { sleep(4); return 'FirstTaskSuccess'; });
+        $aFoo->trySynchronizeWithTimeout(1, function () {
+            sleep(4);
+
+            return 'FirstTaskSuccess';
+        });
         $a->expectNothingAfter('1s');
 
-        $bFoo->trySynchronizeWithTimeout(2, fn() => 'SecondTaskSuccess');
+        $bFoo->trySynchronizeWithTimeout(2, fn () => 'SecondTaskSuccess');
         $b->expectNothingAfter('1s');
         $b->expectWithin('2s', 'SYNC_LOCK_FAILURE');
 
         $a->expectWithin('2s', 'SYNC_LOCK_SUCCESS;RETURN:FirstTaskSuccess');
 
-        $bFoo->trySynchronizeWithTimeout(1, fn() => 'SecondTaskSuccess');
+        $bFoo->trySynchronizeWithTimeout(1, fn () => 'SecondTaskSuccess');
         $b->expectWithin('1s', 'SYNC_LOCK_SUCCESS;RETURN:SecondTaskSuccess');
     }
 
@@ -259,16 +281,20 @@ class LockTest extends TestCase
         $aFoo = $a->createLock('foo');
         $bFoo = $b->createLock('foo');
 
-        $aFoo->trySynchronizeWithTimeout(1, function() { sleep(4); throw new Exception('FirstTaskError'); });
+        $aFoo->trySynchronizeWithTimeout(1, function (): void {
+            sleep(4);
+
+            throw new Exception('FirstTaskError');
+        });
         $a->expectNothingAfter('1s');
 
-        $bFoo->trySynchronizeWithTimeout(2, fn() => 'SecondTaskSuccess');
+        $bFoo->trySynchronizeWithTimeout(2, fn () => 'SecondTaskSuccess');
         $b->expectNothingAfter('1s');
         $b->expectWithin('2s', 'SYNC_LOCK_FAILURE');
 
         $a->expectWithin('2s', 'SYNC_LOCK_SUCCESS;EXCEPTION:FirstTaskError');
 
-        $bFoo->trySynchronizeWithTimeout(1, fn() => 'SecondTaskSuccess');
+        $bFoo->trySynchronizeWithTimeout(1, fn () => 'SecondTaskSuccess');
         $b->expectWithin('1s', 'SYNC_LOCK_SUCCESS;RETURN:SecondTaskSuccess');
     }
 

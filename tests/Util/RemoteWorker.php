@@ -10,7 +10,18 @@ use PHPUnit\Framework\Assert;
 use Symfony\Component\Process\InputStream;
 use Symfony\Component\Process\Process;
 
+use function explode;
+use function implode;
+use function json_encode;
+use function microtime;
 use function Opis\Closure\serialize;
+use function preg_match;
+use function rtrim;
+use function sprintf;
+use function trim;
+use function usleep;
+
+use const JSON_THROW_ON_ERROR;
 
 /**
  * Sends commands to the worker operating in a separate process.
@@ -18,7 +29,9 @@ use function Opis\Closure\serialize;
 final class RemoteWorker
 {
     private readonly Process $process;
+
     private readonly InputStream $input;
+
     private bool $isKilled = false;
 
     public function __construct()

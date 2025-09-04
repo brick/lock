@@ -6,6 +6,8 @@ namespace Brick\Lock\Exception;
 
 use Throwable;
 
+use function sprintf;
+
 /**
  * Exception thrown when a lock cannot be acquired due to an error.
  * It is ONLY thrown in case of an error: it is NOT thrown when the lock cannot be acquired because it is already held.

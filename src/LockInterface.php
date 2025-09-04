@@ -142,7 +142,7 @@ interface LockInterface
      * @param Closure(): T $task
      *
      * @return SynchronizeSuccess<T>|null The return value of the closure wrapped in a SynchronizeSuccess object,
-     *                                     or null if the lock could not be acquired.
+     *                                    or null if the lock could not be acquired.
      *
      * @throws InvalidArgumentException If the timeout is negative or zero.
      * @throws LockAcquireException     If the lock cannot be acquired due to an error. The closure was not executed,

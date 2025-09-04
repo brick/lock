@@ -10,6 +10,9 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use Override;
 
+use function count;
+use function sprintf;
+
 /**
  * Wraps a Doctrine DBAL connection.
  */

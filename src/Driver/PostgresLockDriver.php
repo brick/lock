@@ -12,6 +12,12 @@ use Brick\Lock\Internal\PostgresHasher;
 use Brick\Lock\LockDriverInterface;
 use Override;
 
+use function is_bool;
+use function microtime;
+use function sprintf;
+use function usleep;
+use function var_export;
+
 /**
  * PostgreSQL driver using pg_advisory_lock().
  *

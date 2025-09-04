@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace Brick\Lock\Internal;
 
+use function sha1;
+use function substr;
+use function unpack;
+
+use const PHP_INT_SIZE;
+
 final class PostgresHasher
 {
     /**

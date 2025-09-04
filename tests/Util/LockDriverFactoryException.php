@@ -6,6 +6,10 @@ namespace Brick\Lock\Tests\Util;
 
 use RuntimeException;
 
+use function implode;
+
+use const PHP_EOL;
+
 final class LockDriverFactoryException extends RuntimeException
 {
     /**

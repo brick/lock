@@ -11,6 +11,12 @@ use Brick\Lock\LockFactoryInterface;
 use Brick\Lock\LockInterface;
 use LogicException;
 
+use function count;
+use function fflush;
+use function fwrite;
+
+use const STDOUT;
+
 /**
  * Context for CommandInterface::execute().
  *

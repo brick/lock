@@ -11,6 +11,10 @@ use Brick\Lock\Exception\LockReleaseException;
 use Brick\Lock\LockDriverInterface;
 use Override;
 
+use function sha1;
+use function sprintf;
+use function var_export;
+
 /**
  * Base class for MysqlLockDriver and MariadbLockDriver.
  */
@@ -20,11 +24,6 @@ abstract readonly class AbstractMysqlLockDriver implements LockDriverInterface
         private ConnectionInterface $connection,
     ) {
     }
-
-    /**
-     * Returns a value representing an infinite timeout.
-     */
-    abstract protected function getInfiniteTimeout(): int;
 
     #[Override]
     public function acquire(string $lockName): void
@@ -76,6 +75,11 @@ abstract readonly class AbstractMysqlLockDriver implements LockDriverInterface
             var_export($result, true),
         ));
     }
+
+    /**
+     * Returns a value representing an infinite timeout.
+     */
+    abstract protected function getInfiniteTimeout(): int;
 
     /**
      * Returns true if the lock was successfully acquired, or false if non-blocking and the lock is already held by

@@ -9,6 +9,8 @@ use Brick\Lock\Internal\PostgresHasher;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
+use function hex2bin;
+
 class PostgresHasherTest extends TestCase
 {
     #[DataProvider('provideHashLockName')]
