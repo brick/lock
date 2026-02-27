@@ -79,7 +79,7 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           extensions: pdo_mysql
-          coverage: xdebug
+          coverage: pcov
 
       - name: Install composer dependencies
         uses: ramsey/composer-install@v3
@@ -96,9 +96,7 @@ jobs:
         if: ${{ matrix.php-version != env.HIGHEST_PHP_VERSION }}
 
       - name: Run PHPUnit with coverage
-        run: |
-          mkdir -p build/logs
-          vendor/bin/phpunit --coverage-clover build/logs/clover.xml
+        run: vendor/bin/phpunit --coverage-clover clover.xml
         env:
           DRIVER: mysql_pdo
           MYSQL_HOST: 127.0.0.1
@@ -108,10 +106,10 @@ jobs:
           PDO_ERRMODE: ${{ matrix.pdo-errmode }}
         if: ${{ matrix.php-version == env.HIGHEST_PHP_VERSION }}
 
-      - name: Upload coverage report to Coveralls
-        run: vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml -v
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
         env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         if: ${{ matrix.php-version == env.HIGHEST_PHP_VERSION }}
 
   phpunit-mysql-doctrine:
@@ -148,7 +146,7 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           extensions: pdo_mysql
-          coverage: xdebug
+          coverage: pcov
 
       - name: Install composer dependencies
         uses: ramsey/composer-install@v3
@@ -156,19 +154,17 @@ jobs:
           dependency-versions: ${{ matrix.deps }}
 
       - name: Run PHPUnit with coverage
-        run: |
-          mkdir -p build/logs
-          vendor/bin/phpunit --coverage-clover build/logs/clover.xml
+        run: vendor/bin/phpunit --coverage-clover clover.xml
         env:
           DRIVER: mysql_doctrine
           MYSQL_HOST: 127.0.0.1
           MYSQL_USER: root
           MYSQL_PASSWORD: password
 
-      - name: Upload coverage report to Coveralls
-        run: vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml -v
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
         env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   phpunit-mariadb-pdo:
     name: PHPUnit MariaDB / PDO
@@ -199,25 +195,23 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           extensions: pdo_mysql
-          coverage: xdebug
+          coverage: pcov
 
       - name: Install composer dependencies
         uses: ramsey/composer-install@v3
 
       - name: Run PHPUnit with coverage
-        run: |
-          mkdir -p build/logs
-          vendor/bin/phpunit --coverage-clover build/logs/clover.xml
+        run: vendor/bin/phpunit --coverage-clover clover.xml
         env:
           DRIVER: mariadb_pdo
           MARIADB_HOST: 127.0.0.1
           MARIADB_USER: root
           MARIADB_PASSWORD: password
 
-      - name: Upload coverage report to Coveralls
-        run: vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml -v
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
         env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   phpunit-mariadb-doctrine:
     name: PHPUnit MariaDB / Doctrine
@@ -248,25 +242,23 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           extensions: pdo_mysql
-          coverage: xdebug
+          coverage: pcov
 
       - name: Install composer dependencies
         uses: ramsey/composer-install@v3
 
       - name: Run PHPUnit with coverage
-        run: |
-          mkdir -p build/logs
-          vendor/bin/phpunit --coverage-clover build/logs/clover.xml
+        run: vendor/bin/phpunit --coverage-clover clover.xml
         env:
           DRIVER: mariadb_doctrine
           MARIADB_HOST: 127.0.0.1
           MARIADB_USER: root
           MARIADB_PASSWORD: password
 
-      - name: Upload coverage report to Coveralls
-        run: vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml -v
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
         env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   phpunit-postgres-pdo:
     name: PHPUnit Postgres / PDO
@@ -295,25 +287,23 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           extensions: pdo_pgsql
-          coverage: xdebug
+          coverage: pcov
 
       - name: Install composer dependencies
         uses: ramsey/composer-install@v3
 
       - name: Run PHPUnit with coverage
-        run: |
-          mkdir -p build/logs
-          vendor/bin/phpunit --coverage-clover build/logs/clover.xml
+        run: vendor/bin/phpunit --coverage-clover clover.xml
         env:
           DRIVER: postgres_pdo
           POSTGRES_HOST: 127.0.0.1
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
 
-      - name: Upload coverage report to Coveralls
-        run: vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml -v
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
         env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   phpunit-postgres-doctrine:
     name: PHPUnit Postgres / Doctrine
@@ -342,22 +332,20 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           extensions: pdo_pgsql
-          coverage: xdebug
+          coverage: pcov
 
       - name: Install composer dependencies
         uses: ramsey/composer-install@v3
 
       - name: Run PHPUnit with coverage
-        run: |
-          mkdir -p build/logs
-          vendor/bin/phpunit --coverage-clover build/logs/clover.xml
+        run: vendor/bin/phpunit --coverage-clover clover.xml
         env:
           DRIVER: postgres_doctrine
           POSTGRES_HOST: 127.0.0.1
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
 
-      - name: Upload coverage report to Coveralls
-        run: vendor/bin/php-coveralls --coverage_clover=build/logs/clover.xml -v
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
         env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

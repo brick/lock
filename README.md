@@ -5,6 +5,7 @@
 Advisory locking for PHP applications.
 
 [![Build Status](https://github.com/brick/lock/workflows/CI/badge.svg)](https://github.com/brick/lock/actions)
+[![Coverage](https://codecov.io/github/brick/lock/graph/badge.svg)](https://codecov.io/github/brick/lock)
 [![Latest Stable Version](https://poser.pugx.org/brick/lock/v/stable)](https://packagist.org/packages/brick/lock)
 [![Total Downloads](https://poser.pugx.org/brick/lock/downloads)](https://packagist.org/packages/brick/lock)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](http://opensource.org/licenses/MIT)

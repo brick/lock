@@ -18,7 +18,6 @@
         "phpunit/phpunit": "^11.5",
         "symfony/process": "^7.3",
         "opis/closure": "^4.3",
-        "php-coveralls/php-coveralls": "^2.8",
         "guzzlehttp/guzzle": "^7.0"
     },
     "conflict": {
