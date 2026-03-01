@@ -9,8 +9,11 @@ use LogicException;
 use PHPUnit\Framework\Assert;
 use Symfony\Component\Process\InputStream;
 use Symfony\Component\Process\Process;
+use Throwable;
 
+use function dirname;
 use function explode;
+use function extension_loaded;
 use function implode;
 use function json_encode;
 use function microtime;
@@ -36,7 +39,18 @@ final class RemoteWorker
 
     public function __construct()
     {
-        $this->process = new Process(['php', 'worker.php'], __DIR__);
+        $command = ['php'];
+
+        if (extension_loaded('pcov')) {
+            // pcov.directory defaults to the process CWD (tests/Util/), which excludes src/.
+            // Set it explicitly so pcov tracks the library source files.
+            $command[] = '-d';
+            $command[] = 'pcov.directory=' . dirname(__DIR__, 2) . '/src';
+        }
+
+        $command[] = 'worker.php';
+
+        $this->process = new Process($command, __DIR__);
         $this->input = new InputStream();
 
         $this->process->setInput($this->input);
@@ -235,6 +249,20 @@ final class RemoteWorker
 
     public function __destruct()
     {
+        if (! $this->isKilled && $this->process->isRunning()) {
+            try {
+                $this->sendCommand(new Command\Shutdown());
+
+                // Give it enough time to collect coverage.
+                $deadline = microtime(true) + 1.0;
+                while ($this->process->isRunning() && microtime(true) < $deadline) {
+                    usleep(100_000);
+                }
+            } catch (Throwable) {
+                // Ignore errors.
+            }
+        }
+
         $this->process->stop(0);
     }
 }

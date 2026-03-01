@@ -14,8 +14,25 @@ use Brick\Lock\Tests\Util\LockDriverFactory;
 use Brick\Lock\Tests\Util\LockDriverFactoryException;
 
 use function Opis\Closure\unserialize;
+use function pcov\collect;
+use function pcov\start;
+use function pcov\stop;
+
+use const pcov\all;
 
 require __DIR__ . '/../../vendor/autoload.php';
+
+if (extension_loaded('pcov')) {
+    start();
+    register_shutdown_function(function (): void {
+        stop();
+        $coverage = collect(all);
+        file_put_contents(
+            sys_get_temp_dir() . '/brick-lock-worker-coverage-' . getmypid() . '.bin',
+            serialize($coverage),
+        );
+    });
+}
 
 try {
     $lockDriverWithInfo = LockDriverFactory::getDriver();

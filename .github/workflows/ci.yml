@@ -96,7 +96,7 @@ jobs:
         if: ${{ matrix.php-version != env.HIGHEST_PHP_VERSION }}
 
       - name: Run PHPUnit with coverage
-        run: vendor/bin/phpunit --coverage-clover clover.xml
+        run: vendor/bin/phpunit --coverage-php coverage.php
         env:
           DRIVER: mysql_pdo
           MYSQL_HOST: 127.0.0.1
@@ -104,6 +104,10 @@ jobs:
           MYSQL_PASSWORD: password
           PDO_EMULATE_PREPARES: ${{ matrix.pdo-emulate-prepares }}
           PDO_ERRMODE: ${{ matrix.pdo-errmode }}
+        if: ${{ matrix.php-version == env.HIGHEST_PHP_VERSION }}
+
+      - name: Merge worker coverage
+        run: php tools/merge-coverage.php coverage.php clover.xml && rm coverage.php
         if: ${{ matrix.php-version == env.HIGHEST_PHP_VERSION }}
 
       - name: Upload coverage to Codecov
@@ -154,12 +158,15 @@ jobs:
           dependency-versions: ${{ matrix.deps }}
 
       - name: Run PHPUnit with coverage
-        run: vendor/bin/phpunit --coverage-clover clover.xml
+        run: vendor/bin/phpunit --coverage-php coverage.php
         env:
           DRIVER: mysql_doctrine
           MYSQL_HOST: 127.0.0.1
           MYSQL_USER: root
           MYSQL_PASSWORD: password
+
+      - name: Merge worker coverage
+        run: php tools/merge-coverage.php coverage.php clover.xml && rm coverage.php
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
@@ -201,12 +208,15 @@ jobs:
         uses: ramsey/composer-install@v3
 
       - name: Run PHPUnit with coverage
-        run: vendor/bin/phpunit --coverage-clover clover.xml
+        run: vendor/bin/phpunit --coverage-php coverage.php
         env:
           DRIVER: mariadb_pdo
           MARIADB_HOST: 127.0.0.1
           MARIADB_USER: root
           MARIADB_PASSWORD: password
+
+      - name: Merge worker coverage
+        run: php tools/merge-coverage.php coverage.php clover.xml && rm coverage.php
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
@@ -248,12 +258,15 @@ jobs:
         uses: ramsey/composer-install@v3
 
       - name: Run PHPUnit with coverage
-        run: vendor/bin/phpunit --coverage-clover clover.xml
+        run: vendor/bin/phpunit --coverage-php coverage.php
         env:
           DRIVER: mariadb_doctrine
           MARIADB_HOST: 127.0.0.1
           MARIADB_USER: root
           MARIADB_PASSWORD: password
+
+      - name: Merge worker coverage
+        run: php tools/merge-coverage.php coverage.php clover.xml && rm coverage.php
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
@@ -293,12 +306,15 @@ jobs:
         uses: ramsey/composer-install@v3
 
       - name: Run PHPUnit with coverage
-        run: vendor/bin/phpunit --coverage-clover clover.xml
+        run: vendor/bin/phpunit --coverage-php coverage.php
         env:
           DRIVER: postgres_pdo
           POSTGRES_HOST: 127.0.0.1
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
+
+      - name: Merge worker coverage
+        run: php tools/merge-coverage.php coverage.php clover.xml && rm coverage.php
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
@@ -338,12 +354,15 @@ jobs:
         uses: ramsey/composer-install@v3
 
       - name: Run PHPUnit with coverage
-        run: vendor/bin/phpunit --coverage-clover clover.xml
+        run: vendor/bin/phpunit --coverage-php coverage.php
         env:
           DRIVER: postgres_doctrine
           POSTGRES_HOST: 127.0.0.1
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
+
+      - name: Merge worker coverage
+        run: php tools/merge-coverage.php coverage.php clover.xml && rm coverage.php
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

@@ -5,3 +5,4 @@
 /tools/*
 !/tools/ecs/composer.json
 !/tools/ecs/ecs.php
+!/tools/merge-coverage.php
