@@ -14,6 +14,7 @@ return static function (ECSConfig $ecsConfig): void {
             $libRootPath . '/src',
             $libRootPath . '/tests',
             $libRootPath . '/phpunit-bootstrap.php',
+            $libRootPath . '/tools/merge-coverage.php',
             __FILE__,
         ],
     );

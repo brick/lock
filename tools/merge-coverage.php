@@ -20,7 +20,7 @@ use SebastianBergmann\CodeCoverage\Data\RawCodeCoverageData;
 use SebastianBergmann\CodeCoverage\Report\Clover;
 
 $coveragePhpFile = $argv[1] ?? __DIR__ . '/../coverage.php';
-$outputFile      = $argv[2] ?? __DIR__ . '/../clover.xml';
+$outputFile = $argv[2] ?? __DIR__ . '/../clover.xml';
 
 /** @var CodeCoverage $coverage */
 $coverage = require $coveragePhpFile;
