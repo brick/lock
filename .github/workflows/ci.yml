@@ -5,7 +5,7 @@ on:
   pull_request:
 
 env:
-  HIGHEST_PHP_VERSION: "8.4"
+  HIGHEST_PHP_VERSION: "8.5"
 
 jobs:
   phpstan:
@@ -45,18 +45,20 @@ jobs:
           - "8.2"
           - "8.3"
           - "8.4"
+          - "8.5"
+          - "8.6"
         pdo-emulate-prepares:
           - "OFF"
         pdo-errmode:
           - "EXCEPTION"
         include:
-          - php-version: "8.4"
+          - php-version: "8.5"
             pdo-emulate-prepares: "ON"
             pdo-errmode: "EXCEPTION"
-          - php-version: "8.4"
+          - php-version: "8.5"
             pdo-emulate-prepares: "OFF"
             pdo-errmode: "SILENT"
-          - php-version: "8.4"
+          - php-version: "8.5"
             pdo-emulate-prepares: "OFF"
             pdo-errmode: "WARNING"
 
@@ -127,6 +129,8 @@ jobs:
           - "highest"
         php-version:
           - "8.4"
+          - "8.5"
+          - "8.6"
         include:
           - php-version: "8.2"
             deps: "lowest"
@@ -182,6 +186,8 @@ jobs:
       matrix:
         php-version:
           - "8.4"
+          - "8.5"
+          - "8.6"
 
     services:
       mariadb:
@@ -232,6 +238,8 @@ jobs:
       matrix:
         php-version:
           - "8.4"
+          - "8.5"
+          - "8.6"
 
     services:
       mariadb:
@@ -281,6 +289,8 @@ jobs:
       matrix:
         php-version:
           - "8.4"
+          - "8.5"
+          - "8.6"
 
     services:
       postgres:
@@ -329,6 +339,8 @@ jobs:
       matrix:
         php-version:
           - "8.4"
+          - "8.5"
+          - "8.6"
 
     services:
       postgres:
