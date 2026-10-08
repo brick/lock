@@ -5,7 +5,7 @@ on:
   pull_request:
 
 env:
-  HIGHEST_PHP_VERSION: "8.4"
+  HIGHEST_PHP_VERSION: "nightly"
 
 jobs:
   phpstan:
@@ -45,6 +45,7 @@ jobs:
           - "8.2"
           - "8.3"
           - "8.4"
+          - "nightly"
         pdo-emulate-prepares:
           - "OFF"
         pdo-errmode:
@@ -127,6 +128,7 @@ jobs:
           - "highest"
         php-version:
           - "8.4"
+          - "nightly"
         include:
           - php-version: "8.2"
             deps: "lowest"
@@ -182,6 +184,7 @@ jobs:
       matrix:
         php-version:
           - "8.4"
+          - "nightly"
 
     services:
       mariadb:
@@ -232,6 +235,7 @@ jobs:
       matrix:
         php-version:
           - "8.4"
+          - "nightly"
 
     services:
       mariadb:
@@ -281,6 +285,7 @@ jobs:
       matrix:
         php-version:
           - "8.4"
+          - "nightly"
 
     services:
       postgres:
@@ -329,6 +334,7 @@ jobs:
       matrix:
         php-version:
           - "8.4"
+          - "nightly"
 
     services:
       postgres:
