@@ -128,9 +128,7 @@ jobs:
         deps:
           - "highest"
         php-version:
-          - "8.4"
           - "8.5"
-          - "8.6"
         include:
           - php-version: "8.2"
             deps: "lowest"
@@ -185,9 +183,7 @@ jobs:
       fail-fast: false
       matrix:
         php-version:
-          - "8.4"
           - "8.5"
-          - "8.6"
 
     services:
       mariadb:
@@ -237,9 +233,7 @@ jobs:
       fail-fast: false
       matrix:
         php-version:
-          - "8.4"
           - "8.5"
-          - "8.6"
 
     services:
       mariadb:
@@ -288,9 +282,7 @@ jobs:
     strategy:
       matrix:
         php-version:
-          - "8.4"
           - "8.5"
-          - "8.6"
 
     services:
       postgres:
@@ -338,9 +330,7 @@ jobs:
     strategy:
       matrix:
         php-version:
-          - "8.4"
           - "8.5"
-          - "8.6"
 
     services:
       postgres:
