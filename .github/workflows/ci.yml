@@ -5,7 +5,7 @@ on:
   pull_request:
 
 env:
-  HIGHEST_PHP_VERSION: "8.5"
+  HIGHEST_STABLE_PHP_VERSION: "8.5"
 
 jobs:
   phpstan:
@@ -19,7 +19,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ env.HIGHEST_PHP_VERSION }}
+          php-version: ${{ env.HIGHEST_STABLE_PHP_VERSION }}
 
       - name: Install composer dependencies
         uses: ramsey/composer-install@v3
@@ -95,7 +95,7 @@ jobs:
           MYSQL_PASSWORD: password
           PDO_EMULATE_PREPARES: ${{ matrix.pdo-emulate-prepares }}
           PDO_ERRMODE: ${{ matrix.pdo-errmode }}
-        if: ${{ matrix.php-version != env.HIGHEST_PHP_VERSION }}
+        if: ${{ matrix.php-version != env.HIGHEST_STABLE_PHP_VERSION }}
 
       - name: Run PHPUnit with coverage
         run: vendor/bin/phpunit --coverage-php coverage.php
@@ -106,17 +106,17 @@ jobs:
           MYSQL_PASSWORD: password
           PDO_EMULATE_PREPARES: ${{ matrix.pdo-emulate-prepares }}
           PDO_ERRMODE: ${{ matrix.pdo-errmode }}
-        if: ${{ matrix.php-version == env.HIGHEST_PHP_VERSION }}
+        if: ${{ matrix.php-version == env.HIGHEST_STABLE_PHP_VERSION }}
 
       - name: Merge worker coverage
         run: php tools/merge-coverage.php coverage.php clover.xml && rm coverage.php
-        if: ${{ matrix.php-version == env.HIGHEST_PHP_VERSION }}
+        if: ${{ matrix.php-version == env.HIGHEST_STABLE_PHP_VERSION }}
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-        if: ${{ matrix.php-version == env.HIGHEST_PHP_VERSION }}
+        if: ${{ matrix.php-version == env.HIGHEST_STABLE_PHP_VERSION }}
 
   phpunit-mysql-doctrine:
     name: PHPUnit MySQL / Doctrine
